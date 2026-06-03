@@ -1,0 +1,432 @@
+<div style="padding: 2rem; background: var(--color-background-primary); color: var(--color-text-primary); max-width: 100%; overflow-y: auto;">
+  <h1 style="font-size: 28px; margin-bottom: 8px; color: var(--color-text-primary);">🎧 Focus Music Hub - Complete Specification</h1>
+  <p style="color: var(--color-text-secondary); margin-bottom: 24px;">Comprehensive requirements document for the ADHD-friendly productivity application</p>
+
+  <style>
+    .spec-section { margin-bottom: 32px; }
+    .spec-section h2 { font-size: 20px; color: var(--color-text-primary); margin-bottom: 12px; border-left: 4px solid var(--color-text-info); padding-left: 12px; }
+    .spec-section h3 { font-size: 16px; color: var(--color-text-primary); margin-top: 16px; margin-bottom: 8px; font-weight: 500; }
+    .spec-list { margin-left: 16px; line-height: 1.8; }
+    .spec-list li { margin-bottom: 8px; color: var(--color-text-primary); }
+    .spec-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .spec-table th, .spec-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--color-border-tertiary); }
+    .spec-table th { background: var(--color-background-secondary); font-weight: 500; }
+    .code-block { background: var(--color-background-secondary); padding: 12px; border-radius: 6px; overflow-x: auto; font-family: monospace; font-size: 12px; margin: 8px 0; }
+    .feature-box { background: var(--color-background-secondary); border-left: 4px solid var(--color-text-info); padding: 12px; margin: 12px 0; border-radius: 4px; }
+    .download-hint { background: var(--color-background-secondary); padding: 16px; border-radius: 8px; margin-top: 24px; text-align: center; }
+  </style>
+
+  <div class="spec-section">
+    <h2>📋 Project Overview</h2>
+    <h3>Purpose</h3>
+    <p>Focus Music Hub is an ADHD-friendly productivity web application combining Pomodoro timer, music streaming, task management, and AI-assisted coaching.</p>
+    
+    <h3>Target Audience</h3>
+    <ul class="spec-list">
+      <li>ADHD individuals requiring structured productivity support</li>
+      <li>Professionals and students needing focus assistance</li>
+      <li>Music lovers wanting ambient music while working</li>
+      <li>Anyone using Pomodoro technique for productivity</li>
+    </ul>
+
+    <h3>Key Technologies</h3>
+    <ul class="spec-list">
+      <li>HTML5 + CSS3 + Vanilla JavaScript</li>
+      <li>No external dependencies or backend</li>
+      <li>Browser LocalStorage for data persistence</li>
+      <li>HTML5 Audio API for streaming</li>
+      <li>Web Speech API for voice input</li>
+    </ul>
+  </div>
+
+  <div class="spec-section">
+    <h2>⏱️ Core Features - Pomodoro Timer</h2>
+    <h3>Default Settings</h3>
+    <ul class="spec-list">
+      <li>Work: 25 minutes</li>
+      <li>Short Break: 5 minutes</li>
+      <li>Long Break: 15 minutes</li>
+      <li>Sessions Before Long Break: 4</li>
+    </ul>
+
+    <h3>Customization</h3>
+    <ul class="spec-list">
+      <li>Work Duration: 1-120 minutes</li>
+      <li>Short Break: 1-30 minutes</li>
+      <li>Long Break: 1-60 minutes</li>
+      <li>Preset Options: 25/5, 50/10, Custom</li>
+    </ul>
+
+    <h3>Display Requirements</h3>
+    <ul class="spec-list">
+      <li>Large timer display (72px desktop, 56px mobile)</li>
+      <li>Real-time countdown (MM:SS format)</li>
+      <li>Mode indicator (WORK MODE / BREAK MODE)</li>
+      <li>Session counter (Session 2/4)</li>
+    </ul>
+
+    <h3>Controls</h3>
+    <ul class="spec-list">
+      <li>Start/Pause button</li>
+      <li>Reset button</li>
+      <li>Skip button (advances to next phase)</li>
+      <li>Volume control slider</li>
+    </ul>
+
+    <h3>Statistics</h3>
+    <ul class="spec-list">
+      <li>Work sessions completed</li>
+      <li>Total focus time (in minutes)</li>
+      <li>Daily goal indicator (4 sessions)</li>
+      <li>Auto-reset at midnight</li>
+    </ul>
+  </div>
+
+  <div class="spec-section">
+    <h2>🎵 Music Streaming System</h2>
+    <h3>Stream Categories</h3>
+    <table class="spec-table">
+      <tr>
+        <th>Stream</th>
+        <th>Icon</th>
+        <th>Purpose</th>
+      </tr>
+      <tr>
+        <td>Focus</td>
+        <td>🧠</td>
+        <td>Upbeat/productive music</td>
+      </tr>
+      <tr>
+        <td>Chillout</td>
+        <td>🌊</td>
+        <td>Relaxing background music</td>
+      </tr>
+      <tr>
+        <td>Deep</td>
+        <td>🌌</td>
+        <td>Ambient/drone music</td>
+      </tr>
+    </table>
+
+    <h3>Audio Formats</h3>
+    <ul class="spec-list">
+      <li>Desktop: MP3 (primary), AAC (fallback)</li>
+      <li>iOS: AAC (primary), MP3 (fallback)</li>
+      <li>Android: MP3 (primary), AAC (fallback)</li>
+    </ul>
+
+    <h3>Features</h3>
+    <ul class="spec-list">
+      <li>Single stream plays at a time</li>
+      <li>Volume control (0-100%)</li>
+      <li>Mute toggle (speaker icon)</li>
+      <li>Auto-start with timer option</li>
+      <li>7-bar animated equalizer (active stream only)</li>
+      <li>Active stream highlighted with teal border</li>
+    </ul>
+  </div>
+
+  <div class="spec-section">
+    <h2>📝 Task Management System</h2>
+    <h3>Task Status Levels</h3>
+    <table class="spec-table">
+      <tr>
+        <th>Status</th>
+        <th>Color</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td>Not Done</td>
+        <td>🔴 Red</td>
+        <td>Default status for new tasks</td>
+      </tr>
+      <tr>
+        <td>In Progress</td>
+        <td>🟠 Orange</td>
+        <td>Currently working on</td>
+      </tr>
+      <tr>
+        <td>Completed</td>
+        <td>🟢 Green</td>
+        <td>Finished tasks</td>
+      </tr>
+    </table>
+
+    <h3>Task Operations</h3>
+    <ul class="spec-list">
+      <li>Create: Type + click + button or press Enter</li>
+      <li>Delete: Click × button</li>
+      <li>Update Status: Click colored buttons or checkbox</li>
+      <li>Auto-sort: Not Done → In Progress → Completed</li>
+      <li>Date Stamps: Automatic "Dec 25, 2024, 3:45 PM" format</li>
+    </ul>
+
+    <h3>Task Data Structure</h3>
+    <div class="code-block">{
+  id: 1,
+  text: "Buy groceries",
+  status: "not-done",
+  createdAt: "2024-12-25T15:45:00Z",
+  dateString: "Dec 25, 2024, 3:45 PM"
+}</div>
+  </div>
+
+  <div class="spec-section">
+    <h2>🎤 Voice Input for Tasks</h2>
+    <h3>How It Works</h3>
+    <ul class="spec-list">
+      <li>Click 🎤 button next to + button</li>
+      <li>Browser listens to user speech</li>
+      <li>Speech converts to text</li>
+      <li>Task auto-adds after 1 second</li>
+    </ul>
+
+    <h3>Browser Support</h3>
+    <table class="spec-table">
+      <tr>
+        <th>Browser</th>
+        <th>Support</th>
+      </tr>
+      <tr>
+        <td>Chrome</td>
+        <td>✅ Full support</td>
+      </tr>
+      <tr>
+        <td>Edge</td>
+        <td>✅ Full support</td>
+      </tr>
+      <tr>
+        <td>Safari</td>
+        <td>✅ iOS 14.5+</td>
+      </tr>
+      <tr>
+        <td>Firefox</td>
+        <td>❌ No support</td>
+      </tr>
+    </table>
+
+    <h3>Visual Feedback</h3>
+    <ul class="spec-list">
+      <li>Button turns red while listening</li>
+      <li>Input shows "🎤 Listening..."</li>
+      <li>Pulsing animation during recording</li>
+      <li>Clear error messages for failures</li>
+    </ul>
+  </div>
+
+  <div class="spec-section">
+    <h2>🤖 AI Agent Assistant</h2>
+    <h3>Appearance</h3>
+    <ul class="spec-list">
+      <li>Fixed bottom-right corner</li>
+      <li>60px animated avatar (50px mobile)</li>
+      <li>Pulsing glow animation</li>
+      <li>Robot emoji (🤖)</li>
+    </ul>
+
+    <h3>Prompt Types</h3>
+    
+    <h4>Type 1: Focus Session</h4>
+    <div class="feature-box">
+      <strong>Trigger:</strong> Idle 20+ minutes during work hours (9 AM - 6 PM)<br>
+      <strong>Message:</strong> "Time for a focus session?"<br>
+      <strong>Action:</strong> Starts Pomodoro timer
+    </div>
+
+    <h4>Type 2: Break Time</h4>
+    <div class="feature-box">
+      <strong>Trigger:</strong> 2+ work sessions completed<br>
+      <strong>Message:</strong> "You've been working hard! Time for a break?"<br>
+      <strong>Action:</strong> Starts break timer
+    </div>
+
+    <h4>Type 3: Add Task</h4>
+    <div class="feature-box">
+      <strong>Trigger:</strong> No tasks during morning (8 AM - 12 PM)<br>
+      <strong>Message:</strong> "Would you like to add a new task?"<br>
+      <strong>Action:</strong> Focuses task input
+    </div>
+
+    <h3>Check Frequency</h3>
+    <ul class="spec-list">
+      <li>Initial check: 30 seconds after load</li>
+      <li>Recurring: Every 2 minutes</li>
+      <li>Does not prompt while timer running</li>
+      <li>Respects last prompt time (no spam)</li>
+    </ul>
+  </div>
+
+  <div class="spec-section">
+    <h2>⚙️ Settings & Customization</h2>
+    <h3>Settings Categories</h3>
+
+    <h4>1. Timer Durations</h4>
+    <ul class="spec-list">
+      <li>Work duration slider (1-120 min)</li>
+      <li>Short break slider (1-30 min)</li>
+      <li>Long break slider (1-60 min)</li>
+      <li>Sessions before long break (2-10)</li>
+      <li>Preset buttons: 25/5, 50/10, Custom</li>
+    </ul>
+
+    <h4>2. Audio Settings</h4>
+    <ul class="spec-list">
+      <li>Auto-start Music with Timer (toggle)</li>
+      <li>Sound Notifications (toggle)</li>
+    </ul>
+
+    <h4>3. Appearance</h4>
+    <ul class="spec-list">
+      <li>Dark Mode (toggle)</li>
+    </ul>
+
+    <h4>4. Data Management</h4>
+    <ul class="spec-list">
+      <li>Reset Today's Stats button</li>
+      <li>Clear All Tasks button</li>
+    </ul>
+  </div>
+
+  <div class="spec-section">
+    <h2>💾 Data Persistence</h2>
+    <h3>LocalStorage Keys</h3>
+    <div class="code-block">focusMusicHubSettings  // All user settings
+focusMusicHubTasks     // All tasks array
+focusMusicHubStats     // Work sessions + focus time</div>
+
+    <h3>Auto-Features</h3>
+    <ul class="spec-list">
+      <li>Auto-save on every change</li>
+      <li>Survive page refresh</li>
+      <li>Auto-reset stats at midnight</li>
+      <li>Auto-migrate old tasks with dates</li>
+    </ul>
+  </div>
+
+  <div class="spec-section">
+    <h2>📱 Device Compatibility</h2>
+    <h3>Desktop Browsers</h3>
+    <table class="spec-table">
+      <tr>
+        <th>Browser</th>
+        <th>Support</th>
+      </tr>
+      <tr>
+        <td>Chrome</td>
+        <td>✅ Full</td>
+      </tr>
+      <tr>
+        <td>Firefox</td>
+        <td>✅ Full (no voice)</td>
+      </tr>
+      <tr>
+        <td>Safari</td>
+        <td>✅ Full</td>
+      </tr>
+      <tr>
+        <td>Edge</td>
+        <td>✅ Full</td>
+      </tr>
+    </table>
+
+    <h3>Mobile Support</h3>
+    <ul class="spec-list">
+      <li>iOS Safari: Full support with audio unlocking</li>
+      <li>iOS Chrome: Basic features (audio limited)</li>
+      <li>Android Chrome: Full support</li>
+      <li>Android Firefox: Most features</li>
+      <li>Touch targets: Minimum 44px × 44px</li>
+      <li>Safe area insets: Support for notch devices</li>
+    </ul>
+  </div>
+
+  <div class="spec-section">
+    <h2>🎨 Color Palette</h2>
+    <table class="spec-table">
+      <tr>
+        <th>Element</th>
+        <th>Color</th>
+        <th>Hex</th>
+      </tr>
+      <tr>
+        <td>Primary Blue</td>
+        <td>■</td>
+        <td>#335C81</td>
+      </tr>
+      <tr>
+        <td>Secondary Teal</td>
+        <td>■</td>
+        <td>#77ACA2</td>
+      </tr>
+      <tr>
+        <td>Accent Blue</td>
+        <td>■</td>
+        <td>#9DBEBB</td>
+      </tr>
+      <tr>
+        <td>Not Done (Red)</td>
+        <td>■</td>
+        <td>#e74c3c</td>
+      </tr>
+      <tr>
+        <td>In Progress (Orange)</td>
+        <td>■</td>
+        <td>#f39c12</td>
+      </tr>
+      <tr>
+        <td>Completed (Green)</td>
+        <td>■</td>
+        <td>#27ae60</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="spec-section">
+    <h2>✅ Testing Checklist</h2>
+    <h3>Timer Tests</h3>
+    <ul class="spec-list">
+      <li>☐ Start/pause/resume timer</li>
+      <li>☐ Reset timer</li>
+      <li>☐ Skip to next phase</li>
+      <li>☐ Work → Break transition</li>
+      <li>☐ Long break after 4 sessions</li>
+      <li>☐ Custom durations apply</li>
+      <li>☐ Session counter updates</li>
+    </ul>
+
+    <h3>Audio Tests</h3>
+    <ul class="spec-list">
+      <li>☐ Stream loads without errors</li>
+      <li>☐ Stream plays on click</li>
+      <li>☐ Volume slider works</li>
+      <li>☐ Mute toggle works</li>
+      <li>☐ Equalizer animates</li>
+      <li>☐ AAC on iOS, MP3 on desktop</li>
+    </ul>
+
+    <h3>Task Tests</h3>
+    <ul class="spec-list">
+      <li>☐ Add task via + button</li>
+      <li>☐ Add task via Enter key</li>
+      <li>☐ Add task via voice</li>
+      <li>☐ Delete task</li>
+      <li>☐ Update status</li>
+      <li>☐ Date stamp displays</li>
+      <li>☐ Tasks persist on refresh</li>
+    </ul>
+
+    <h3>Mobile Tests</h3>
+    <ul class="spec-list">
+      <li>☐ Single column layout</li>
+      <li>☐ Touch targets 44px+</li>
+      <li>☐ Safe area insets (notch)</li>
+      <li>☐ Voice input on iOS</li>
+      <li>☐ Audio unlocking works</li>
+    </ul>
+  </div>
+
+  <div class="download-hint">
+    <strong>📄 Save This Specification</strong><br>
+    <p style="margin: 8px 0; color: var(--color-text-secondary); font-size: 13px;">Right-click → Save As HTML to save this specification document for future reference and development.</p>
+  </div>
+</div>

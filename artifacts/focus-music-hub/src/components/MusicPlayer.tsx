@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, AlertCircle, Loader2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
 interface Stream {
@@ -10,10 +10,12 @@ interface Stream {
 }
 
 const STREAMS: Stream[] = [
-  { id: "frisky", label: "Frisky", icon: "🧠", url: "https://stream.frisky.fm/frisky" },
-  { id: "deep", label: "Deep", icon: "🌌", url: "https://stream.frisky.fm/deep" },
-  { id: "chill", label: "Chill", icon: "🌊", url: "https://stream.frisky.fm/chill" },
+  { id: "frisky", label: "Frisky", icon: "🧠", url: "https://stream.frisky.friskyradio.com/mp3_high" },
+  { id: "deep",   label: "Deep",   icon: "🌌", url: "https://stream.deep.friskyradio.com/mp3_high" },
+  { id: "chill",  label: "Chill",  icon: "🌊", url: "https://stream.chill.friskyradio.com/mp3_high" },
 ];
+
+type StreamState = "idle" | "loading" | "playing" | "error";
 
 interface MusicPlayerProps {
   volume: number;
@@ -24,8 +26,9 @@ interface MusicPlayerProps {
 
 export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTimerRunning }: MusicPlayerProps) {
   const [activeStream, setActiveStream] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [streamState, setStreamState] = useState<StreamState>("idle");
   const [isMuted, setIsMuted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const prevTimerRunning = useRef(isTimerRunning);
 
@@ -33,30 +36,57 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = "";
+      audioRef.current.load();
       audioRef.current = null;
     }
-    setIsPlaying(false);
+    setStreamState("idle");
+    setErrorMsg(null);
   }, []);
 
   const playStream = useCallback((stream: Stream) => {
     stopAudio();
-    const audio = new Audio(stream.url);
-    audio.volume = isMuted ? 0 : volume / 100;
-    audio.play().catch(() => {});
-    audioRef.current = audio;
     setActiveStream(stream.id);
-    setIsPlaying(true);
-    audio.onerror = () => { setIsPlaying(false); };
+    setStreamState("loading");
+    setErrorMsg(null);
+
+    const audio = new Audio();
+    audio.preload = "none";
+    audio.crossOrigin = "anonymous";
+    audioRef.current = audio;
+
+    audio.addEventListener("playing", () => {
+      setStreamState("playing");
+    });
+
+    audio.addEventListener("waiting", () => {
+      setStreamState("loading");
+    });
+
+    audio.addEventListener("error", () => {
+      setStreamState("error");
+      setErrorMsg("Stream unavailable — try another channel");
+    });
+
+    audio.volume = isMuted ? 0 : volume / 100;
+    audio.src = stream.url;
+
+    audio.play().catch((err: Error) => {
+      if (err.name !== "AbortError") {
+        setStreamState("error");
+        setErrorMsg("Could not start stream — try clicking again");
+      }
+    });
   }, [stopAudio, volume, isMuted]);
 
   const handleStreamClick = useCallback((stream: Stream) => {
-    if (activeStream === stream.id && isPlaying) {
+    const isThisActive = activeStream === stream.id && (streamState === "playing" || streamState === "loading");
+    if (isThisActive) {
       stopAudio();
       setActiveStream(null);
     } else {
       playStream(stream);
     }
-  }, [activeStream, isPlaying, stopAudio, playStream]);
+  }, [activeStream, streamState, stopAudio, playStream]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -67,18 +97,15 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
   useEffect(() => {
     if (autoStartWithTimer) {
       if (isTimerRunning && !prevTimerRunning.current) {
-        const defaultStream = STREAMS[0];
-        if (!isPlaying) playStream(defaultStream);
+        if (streamState === "idle") playStream(STREAMS[0]);
       } else if (!isTimerRunning && prevTimerRunning.current) {
-        if (isPlaying) stopAudio();
+        if (streamState === "playing" || streamState === "loading") stopAudio();
       }
     }
     prevTimerRunning.current = isTimerRunning;
-  }, [isTimerRunning, autoStartWithTimer, isPlaying, playStream, stopAudio]);
+  }, [isTimerRunning, autoStartWithTimer, streamState, playStream, stopAudio]);
 
-  useEffect(() => {
-    return () => { stopAudio(); };
-  }, [stopAudio]);
+  useEffect(() => () => { stopAudio(); }, [stopAudio]);
 
   return (
     <div className="p-6 rounded-2xl bg-card border border-card-border shadow-lg">
@@ -95,22 +122,33 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
 
       <div className="flex flex-col gap-2 mb-4">
         {STREAMS.map((stream) => {
-          const active = activeStream === stream.id && isPlaying;
+          const isActive = activeStream === stream.id;
+          const isPlaying = isActive && streamState === "playing";
+          const isLoading = isActive && streamState === "loading";
+          const isError = isActive && streamState === "error";
+
           return (
             <button
               key={stream.id}
               data-testid={`button-stream-${stream.id}`}
               onClick={() => handleStreamClick(stream)}
               className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
-                active
+                isPlaying || isLoading
                   ? "border-[#77ACA2] bg-[#77ACA2]/10"
+                  : isError
+                  ? "border-destructive/40 bg-destructive/5"
                   : "border-border bg-muted/40 hover:border-[#9DBEBB] hover:bg-accent/10"
               }`}
             >
               <span className="text-xl">{stream.icon}</span>
               <span className="font-medium text-sm text-foreground flex-1">{stream.label}</span>
-              {active && (
-                <div className="flex items-end gap-[2px] h-5">
+
+              {isLoading && (
+                <Loader2 size={15} className="text-[#77ACA2] animate-spin shrink-0" />
+              )}
+
+              {isPlaying && (
+                <div className="flex items-end gap-[2px] h-5 shrink-0">
                   {Array.from({ length: 7 }).map((_, i) => (
                     <div
                       key={i}
@@ -124,13 +162,21 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
                   ))}
                 </div>
               )}
-              {!active && activeStream === stream.id && (
-                <span className="text-xs text-muted-foreground">Paused</span>
+
+              {isError && (
+                <AlertCircle size={15} className="text-destructive shrink-0" />
               )}
             </button>
           );
         })}
       </div>
+
+      {errorMsg && (
+        <p className="text-xs text-destructive mb-3 flex items-center gap-1.5">
+          <AlertCircle size={12} />
+          {errorMsg}
+        </p>
+      )}
 
       <div className="flex items-center gap-3">
         <Volume2 size={14} className="text-muted-foreground shrink-0" />

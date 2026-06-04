@@ -10,9 +10,9 @@ interface Stream {
 }
 
 const STREAMS: Stream[] = [
-  { id: "focus", label: "Focus", icon: "🧠", url: "https://streams.ilovemusic.de/iloveradio17.mp3" },
-  { id: "chillout", label: "Chillout", icon: "🌊", url: "https://streams.ilovemusic.de/iloveradio2.mp3" },
-  { id: "deep", label: "Deep", icon: "🌌", url: "https://streams.ilovemusic.de/iloveradio8.mp3" },
+  { id: "frisky", label: "Frisky", icon: "🧠", url: "https://stream.frisky.fm/frisky" },
+  { id: "deep", label: "Deep", icon: "🌌", url: "https://stream.frisky.fm/deep" },
+  { id: "chill", label: "Chill", icon: "🌊", url: "https://stream.frisky.fm/chill" },
 ];
 
 interface MusicPlayerProps {

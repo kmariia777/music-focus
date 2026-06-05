@@ -13,7 +13,7 @@ import type { CalendarEvent } from "@/components/CalendarTaskModal";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useTimer } from "@/hooks/useTimer";
 import type { TimerStats } from "@/hooks/useTimer";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Settings2, Timer, CheckSquare, Flame, Music2 } from "lucide-react";
 
 const DEFAULT_SETTINGS: AppSettings = {
   workDuration: 25,
@@ -39,25 +39,20 @@ function checkMidnightReset(stats: TimerStats): TimerStats {
   return stats;
 }
 
-function todayDateStr() {
-  return new Date().toDateString();
-}
-
 function formatDueLabel(dueDate?: string): string {
   if (!dueDate) return "";
   const d = new Date(dueDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const due = new Date(d);
-  due.setHours(0, 0, 0, 0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+  const due = new Date(d); due.setHours(0, 0, 0, 0);
   if (due.getTime() === today.getTime()) return "Today";
   if (due.getTime() === tomorrow.getTime()) return "Tomorrow";
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+type ActiveTab = "timer" | "tasks" | "streak" | "music";
 
 export default function Home() {
   const [settings, setSettings] = useLocalStorage<AppSettings>("focusMusicHubSettings", DEFAULT_SETTINGS);
@@ -70,21 +65,16 @@ export default function Home() {
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  const [mobileTab, setMobileTab] = useState<ActiveTab>("timer");
 
   const stats = checkMidnightReset(rawStats);
 
-  const recordSessionToHistory = useCallback((completedStats: TimerStats) => {
-    const today = todayDateStr();
+  const recordSession = useCallback((s: TimerStats) => {
+    const today = new Date().toDateString();
     setHistory((prev) => {
-      const existing = prev.find((d) => d.date === today);
-      if (existing) {
-        return prev.map((d) =>
-          d.date === today
-            ? { ...d, sessions: completedStats.sessionsCompleted, minutes: completedStats.totalFocusMinutes }
-            : d
-        );
-      }
-      return [...prev, { date: today, sessions: completedStats.sessionsCompleted, minutes: completedStats.totalFocusMinutes }];
+      const exists = prev.find((d) => d.date === today);
+      if (exists) return prev.map((d) => d.date === today ? { ...d, sessions: s.sessionsCompleted, minutes: s.totalFocusMinutes } : d);
+      return [...prev, { date: today, sessions: s.sessionsCompleted, minutes: s.totalFocusMinutes }];
     });
   }, [setHistory]);
 
@@ -96,166 +86,187 @@ export default function Home() {
       sessionsBeforeLongBreak: settings.sessionsBeforeLongBreak,
     },
     stats,
-    onStatsUpdate: (newStats) => {
-      setStats(newStats);
-      recordSessionToHistory(newStats);
-    },
+    onStatsUpdate: (s) => { setStats(s); recordSession(s); },
     soundEnabled: settings.soundNotifications,
   });
 
   const handleSettingsChange = useCallback((s: AppSettings) => {
     setSettings(s);
-    if (s.darkMode) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
+    document.documentElement.classList.toggle("dark", s.darkMode);
   }, [setSettings]);
-
-  const handleResetStats = useCallback(() => {
-    setStats({ sessionsCompleted: 0, totalFocusMinutes: 0, lastResetDate: new Date().toDateString() });
-  }, [setStats]);
-
-  const handleClearTasks = useCallback(() => { setTasks([]); }, [setTasks]);
-  const handleStartBreak = useCallback(() => { timer.setMode("short-break"); timer.start(); }, [timer]);
-  const handleFocusTaskInput = useCallback(() => {
-    document.querySelector<HTMLInputElement>('[data-testid="input-task"]')?.focus();
-  }, []);
 
   const fetchCalendarEvents = useCallback(async () => {
     setLoadingEvents(true);
     try {
       const resp = await fetch(`${BASE}/api/calendar/events`);
-      if (resp.status === 401 || resp.status === 503) {
-        setCalendarConnected(false);
-        return;
-      }
-      if (!resp.ok) return;
+      if (!resp.ok) { setCalendarConnected(false); return; }
       const data = await resp.json() as CalendarEvent[];
       setCalendarEvents(data);
       setCalendarConnected(true);
-    } catch {
-      setCalendarConnected(false);
-    } finally {
-      setLoadingEvents(false);
-    }
+    } catch { setCalendarConnected(false); }
+    finally { setLoadingEvents(false); }
   }, []);
 
-  useEffect(() => {
-    fetchCalendarEvents();
-  }, [fetchCalendarEvents]);
-
-  const handleCalendarOpen = useCallback(() => {
-    setCalendarOpen(true);
-    fetchCalendarEvents();
-  }, [fetchCalendarEvents]);
+  useEffect(() => { fetchCalendarEvents(); }, [fetchCalendarEvents]);
 
   const handleAddScheduledTask = useCallback((text: string, dueDate?: string) => {
     const now = new Date().toISOString();
     const label = dueDate ? ` [${formatDueLabel(dueDate)}]` : "";
-    const newTask: Task = {
+    setTasks((prev) => [{
       id: Date.now(),
       text: `${text}${label}`,
       status: "not-done",
       createdAt: now,
-      dateString: new Date(now).toLocaleString("en-US", {
-        month: "short", day: "numeric", year: "numeric",
-        hour: "numeric", minute: "2-digit",
-      }),
-    };
-    setTasks((prev) => [newTask, ...prev]);
+      dateString: new Date(now).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }),
+    }, ...prev]);
   }, [setTasks]);
+
+  const modeButtons = [
+    { mode: "work" as const, label: "Focus", duration: settings.workDuration },
+    { mode: "short-break" as const, label: "Short Break", duration: settings.shortBreakDuration },
+    { mode: "long-break" as const, label: "Long Break", duration: settings.longBreakDuration },
+  ];
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <header className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Focus Music Hub</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Stay focused. Stay productive.</p>
+      {/* Header */}
+      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "#335C81" }}>
+              <Timer size={14} className="text-white" />
+            </div>
+            <span className="font-semibold text-foreground text-sm tracking-tight">Focus Music Hub</span>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-1.5">
             <button
               data-testid="button-open-calendar"
-              onClick={handleCalendarOpen}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg border border-border hover:border-[#9DBEBB] bg-muted"
+              onClick={() => { setCalendarOpen(true); fetchCalendarEvents(); }}
+              className="flex items-center gap-1.5 h-8 px-3 text-xs text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-all"
             >
               <CalendarDays size={13} />
-              Calendar
+              <span className="hidden sm:inline">Calendar</span>
               {calendarConnected && <span className="w-1.5 h-1.5 rounded-full bg-[#27ae60]" />}
             </button>
             <button
               data-testid="button-header-settings"
               onClick={() => setSettingsOpen(true)}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg border border-border hover:border-[#9DBEBB] bg-muted"
+              className="flex items-center gap-1.5 h-8 px-3 text-xs text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-all"
             >
-              Settings
+              <Settings2 size={13} />
+              <span className="hidden sm:inline">Settings</span>
             </button>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-          <div className="flex flex-col gap-6">
-            <PomodoroTimer
-              mode={timer.mode}
-              isRunning={timer.isRunning}
-              displayTime={timer.displayTime}
-              progress={timer.progress}
-              sessionCount={timer.sessionCount}
-              sessionsBeforeLongBreak={timer.sessionsBeforeLongBreak}
-              stats={stats}
-              volume={volume}
-              onVolumeChange={setVolume}
-              onStart={timer.start}
-              onPause={timer.pause}
-              onReset={timer.reset}
-              onSkip={timer.skip}
-              onOpenSettings={() => setSettingsOpen(true)}
-            />
-            <StreakHeatmap history={history} />
-            <TaskManager tasks={tasks} onTasksChange={setTasks} />
+      {/* Mobile Tab Bar */}
+      <div className="sticky top-14 z-20 border-b border-border bg-background/80 backdrop-blur-md lg:hidden">
+        <div className="flex">
+          {([
+            { id: "timer" as const, icon: Timer, label: "Timer" },
+            { id: "music" as const, icon: Music2, label: "Music" },
+            { id: "tasks" as const, icon: CheckSquare, label: "Tasks" },
+            { id: "streak" as const, icon: Flame, label: "Streak" },
+          ]).map(({ id, icon: Icon, label }) => (
+            <button
+              key={id}
+              onClick={() => setMobileTab(id)}
+              className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition-all ${
+                mobileTab === id ? "text-foreground border-b-2 border-[#335C81]" : "text-muted-foreground"
+              }`}
+            >
+              <Icon size={15} />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="max-w-5xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
+
+          {/* Left column */}
+          <div className="flex flex-col gap-5">
+
+            {/* Timer — always shown on desktop, tab-gated on mobile */}
+            <div className={mobileTab !== "timer" ? "hidden lg:block" : ""}>
+              <PomodoroTimer
+                mode={timer.mode}
+                isRunning={timer.isRunning}
+                displayTime={timer.displayTime}
+                progress={timer.progress}
+                sessionCount={timer.sessionCount}
+                sessionsBeforeLongBreak={timer.sessionsBeforeLongBreak}
+                stats={stats}
+                volume={volume}
+                onVolumeChange={setVolume}
+                onStart={timer.start}
+                onPause={timer.pause}
+                onReset={timer.reset}
+                onSkip={timer.skip}
+                onOpenSettings={() => setSettingsOpen(true)}
+              />
+            </div>
+
+            {/* Streak — desktop always, mobile tab-gated */}
+            <div className={mobileTab !== "streak" ? "hidden lg:block" : ""}>
+              <StreakHeatmap history={history} />
+            </div>
+
+            {/* Tasks — desktop always, mobile tab-gated */}
+            <div className={mobileTab !== "tasks" ? "hidden lg:block" : ""}>
+              <TaskManager tasks={tasks} onTasksChange={setTasks} />
+            </div>
           </div>
 
-          <div className="flex flex-col gap-6">
-            <MusicPlayer
-              volume={volume}
-              onVolumeChange={setVolume}
-              autoStartWithTimer={settings.autoStartMusic}
-              isTimerRunning={timer.isRunning}
-            />
+          {/* Right column */}
+          <div className="flex flex-col gap-5">
 
-            <div className="p-5 rounded-2xl bg-card border border-card-border shadow-lg">
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Session Modes</h3>
-              <div className="flex flex-col gap-2">
-                {([
-                  { mode: "work" as const, label: "Work", duration: settings.workDuration },
-                  { mode: "short-break" as const, label: "Short Break", duration: settings.shortBreakDuration },
-                  { mode: "long-break" as const, label: "Long Break", duration: settings.longBreakDuration },
-                ] as const).map((item) => (
+            {/* Music — desktop always, mobile tab-gated */}
+            <div className={mobileTab !== "music" ? "hidden lg:flex lg:flex-col lg:gap-5" : "flex flex-col gap-5"}>
+              <MusicPlayer
+                volume={volume}
+                onVolumeChange={setVolume}
+                autoStartWithTimer={settings.autoStartMusic}
+                isTimerRunning={timer.isRunning}
+              />
+            </div>
+
+            {/* Session Mode picker — desktop only */}
+            <div className="hidden lg:block rounded-2xl bg-card border border-card-border shadow-lg p-5">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Session Mode</h3>
+              <div className="flex flex-col gap-1.5">
+                {modeButtons.map((item) => (
                   <button
                     key={item.mode}
                     data-testid={`button-mode-${item.mode}`}
                     onClick={() => timer.setMode(item.mode)}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg border text-sm transition-all ${
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl border text-sm transition-all ${
                       timer.mode === item.mode
-                        ? "border-[#77ACA2] bg-[#77ACA2]/10 text-foreground font-medium"
-                        : "border-border bg-muted/40 text-muted-foreground hover:border-[#9DBEBB] hover:text-foreground"
+                        ? "border-[#335C81]/40 bg-[#335C81]/08 text-foreground font-medium"
+                        : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                     }`}
                   >
                     <span>{item.label}</span>
-                    <span className="text-xs opacity-70">{item.duration} min</span>
+                    <span className="text-xs opacity-60 tabular-nums">{item.duration} min</span>
                   </button>
                 ))}
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <AICoach
         isTimerRunning={timer.isRunning}
         sessionsCompleted={stats.sessionsCompleted}
         hasTasks={tasks.length > 0}
         onStartTimer={timer.start}
-        onStartBreak={handleStartBreak}
-        onFocusTaskInput={handleFocusTaskInput}
+        onStartBreak={() => { timer.setMode("short-break"); timer.start(); }}
+        onFocusTaskInput={() => document.querySelector<HTMLInputElement>('[data-testid="input-task"]')?.focus()}
       />
 
       <SettingsPanel
@@ -263,8 +274,8 @@ export default function Home() {
         settings={settings}
         onSettingsChange={handleSettingsChange}
         onClose={() => setSettingsOpen(false)}
-        onResetStats={handleResetStats}
-        onClearTasks={handleClearTasks}
+        onResetStats={() => setStats({ sessionsCompleted: 0, totalFocusMinutes: 0, lastResetDate: new Date().toDateString() })}
+        onClearTasks={() => setTasks([])}
       />
 
       <CalendarTaskModal

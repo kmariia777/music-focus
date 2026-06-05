@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { Play, Pause, RotateCcw, SkipForward, Volume2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
-import type { TimerMode } from "@/hooks/useTimer";
-import type { TimerStats } from "@/hooks/useTimer";
+import { motion } from "framer-motion";
+import type { TimerMode, TimerStats } from "@/hooks/useTimer";
 
 interface PomodoroTimerProps {
   mode: TimerMode;
@@ -21,23 +21,31 @@ interface PomodoroTimerProps {
   onOpenSettings: () => void;
 }
 
-const modeLabel: Record<TimerMode, string> = {
-  work: "WORK MODE",
-  "short-break": "SHORT BREAK",
-  "long-break": "LONG BREAK",
+const MODE_CONFIG: Record<TimerMode, { label: string; ring: string; glow: string; bg: string }> = {
+  work: {
+    label: "Focus",
+    ring: "#335C81",
+    glow: "rgba(51,92,129,0.25)",
+    bg: "rgba(51,92,129,0.06)",
+  },
+  "short-break": {
+    label: "Short Break",
+    ring: "#77ACA2",
+    glow: "rgba(119,172,162,0.25)",
+    bg: "rgba(119,172,162,0.06)",
+  },
+  "long-break": {
+    label: "Long Break",
+    ring: "#9DBEBB",
+    glow: "rgba(157,190,187,0.25)",
+    bg: "rgba(157,190,187,0.06)",
+  },
 };
 
-const modeColor: Record<TimerMode, string> = {
-  work: "text-[#9DBEBB]",
-  "short-break": "text-[#77ACA2]",
-  "long-break": "text-[#77ACA2]",
-};
-
-const modeRingColor: Record<TimerMode, string> = {
-  work: "#335C81",
-  "short-break": "#77ACA2",
-  "long-break": "#9DBEBB",
-};
+const DAILY_GOAL = 4;
+const SIZE = 240;
+const R = 104;
+const C = 2 * Math.PI * R;
 
 export function PomodoroTimer({
   mode,
@@ -55,129 +63,153 @@ export function PomodoroTimer({
   onSkip,
   onOpenSettings,
 }: PomodoroTimerProps) {
+  const cfg = MODE_CONFIG[mode];
   const handleToggle = useCallback(() => {
-    if (isRunning) onPause();
-    else onStart();
+    if (isRunning) onPause(); else onStart();
   }, [isRunning, onStart, onPause]);
 
-  const dailyGoal = 4;
-  const goalProgress = Math.min(stats.sessionsCompleted / dailyGoal, 1);
-
-  const radius = 110;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDash = circumference * (1 - progress);
+  const goalPct = Math.min(stats.sessionsCompleted / DAILY_GOAL, 1);
+  const sessionDisplay = Math.min(sessionCount % sessionsBeforeLongBreak + 1, sessionsBeforeLongBreak);
 
   return (
-    <div className="flex flex-col items-center gap-6 p-6 rounded-2xl bg-card border border-card-border shadow-lg">
-      <div className="flex items-center justify-between w-full">
-        <span className={`text-xs font-semibold tracking-widest uppercase ${modeColor[mode]}`}>
-          {modeLabel[mode]}
-        </span>
+    <div className="rounded-2xl bg-card border border-card-border shadow-lg overflow-hidden">
+      <div className="flex items-center justify-between px-5 pt-5 pb-0">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full"
+            style={{ background: cfg.bg, color: cfg.ring }}
+          >
+            {cfg.label}
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            {sessionDisplay}/{sessionsBeforeLongBreak}
+          </span>
+        </div>
         <button
           data-testid="button-open-settings"
           onClick={onOpenSettings}
-          className="text-muted-foreground hover:text-foreground transition-colors text-xs"
+          className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
         >
-          Settings
+          Customize
         </button>
       </div>
 
-      <div className="relative flex items-center justify-center" style={{ width: 260, height: 260 }}>
-        <svg width="260" height="260" className="absolute inset-0 -rotate-90">
-          <circle
-            cx="130"
-            cy="130"
-            r={radius}
-            fill="none"
-            stroke="hsl(var(--muted))"
-            strokeWidth="8"
-          />
-          <circle
-            cx="130"
-            cy="130"
-            r={radius}
-            fill="none"
-            stroke={modeRingColor[mode]}
-            strokeWidth="8"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDash}
-            style={{ transition: "stroke-dashoffset 0.5s ease" }}
-          />
-        </svg>
-        <div className="flex flex-col items-center z-10">
-          <span
-            data-testid="text-timer-display"
-            className="font-mono font-bold text-foreground leading-none"
-            style={{ fontSize: "clamp(48px, 10vw, 72px)" }}
-          >
-            {displayTime}
-          </span>
-          <span className="text-muted-foreground text-sm mt-2">
-            Session {Math.min(sessionCount % sessionsBeforeLongBreak + 1, sessionsBeforeLongBreak)}/{sessionsBeforeLongBreak}
-          </span>
+      {/* Ring + Time */}
+      <div className="flex justify-center py-6">
+        <div className="relative" style={{ width: SIZE, height: SIZE }}>
+          {/* Glow */}
+          {isRunning && (
+            <div
+              className="absolute inset-0 rounded-full blur-2xl opacity-60 transition-all"
+              style={{ background: cfg.glow }}
+            />
+          )}
+          <svg width={SIZE} height={SIZE} className="absolute inset-0 -rotate-90">
+            <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" stroke="hsl(var(--muted))" strokeWidth={6} />
+            <motion.circle
+              cx={SIZE / 2}
+              cy={SIZE / 2}
+              r={R}
+              fill="none"
+              stroke={cfg.ring}
+              strokeWidth={6}
+              strokeLinecap="round"
+              strokeDasharray={C}
+              strokeDashoffset={C * (1 - progress)}
+              style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1), stroke 0.5s ease" }}
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span
+              data-testid="text-timer-display"
+              className="font-mono font-bold tracking-tight text-foreground leading-none"
+              style={{ fontSize: 52 }}
+            >
+              {displayTime}
+            </span>
+            {isRunning && (
+              <motion.span
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-[10px] mt-2 font-medium tracking-widest uppercase"
+                style={{ color: cfg.ring }}
+              >
+                Running
+              </motion.span>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Controls */}
+      <div className="flex items-center justify-center gap-3 pb-6">
         <button
           data-testid="button-timer-reset"
           onClick={onReset}
-          className="p-2.5 rounded-full bg-muted hover:bg-accent/30 text-muted-foreground hover:text-foreground transition-all"
+          className="w-10 h-10 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all flex items-center justify-center"
         >
-          <RotateCcw size={18} />
+          <RotateCcw size={16} />
         </button>
-        <button
+
+        <motion.button
           data-testid="button-timer-toggle"
           onClick={handleToggle}
-          className="px-10 py-3 rounded-full font-semibold text-sm tracking-wide transition-all shadow-md"
-          style={{
-            background: isRunning ? "hsl(var(--secondary))" : "hsl(var(--primary))",
-            color: "#fff",
-          }}
+          whileTap={{ scale: 0.95 }}
+          className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all"
+          style={{ background: cfg.ring, boxShadow: isRunning ? `0 0 24px ${cfg.glow}` : "none" }}
         >
-          {isRunning ? <Pause size={20} /> : <Play size={20} />}
-        </button>
+          {isRunning
+            ? <Pause size={22} className="text-white" />
+            : <Play size={22} className="text-white translate-x-0.5" />
+          }
+        </motion.button>
+
         <button
           data-testid="button-timer-skip"
           onClick={onSkip}
-          className="p-2.5 rounded-full bg-muted hover:bg-accent/30 text-muted-foreground hover:text-foreground transition-all"
+          className="w-10 h-10 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all flex items-center justify-center"
         >
-          <SkipForward size={18} />
+          <SkipForward size={16} />
         </button>
       </div>
 
-      <div className="flex items-center gap-3 w-full max-w-xs">
-        <Volume2 size={16} className="text-muted-foreground shrink-0" />
-        <Slider
-          data-testid="slider-volume"
-          value={[volume]}
-          onValueChange={([v]) => onVolumeChange(v)}
-          min={0}
-          max={100}
-          step={1}
-          className="flex-1"
-        />
-        <span className="text-xs text-muted-foreground w-7 text-right">{volume}%</span>
+      {/* Volume */}
+      <div className="px-5 pb-5">
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/40 border border-border">
+          <Volume2 size={13} className="text-muted-foreground shrink-0" />
+          <Slider
+            data-testid="slider-volume"
+            value={[volume]}
+            onValueChange={([v]) => onVolumeChange(v)}
+            min={0} max={100} step={1}
+            className="flex-1"
+          />
+          <span className="text-xs text-muted-foreground w-7 text-right tabular-nums">{volume}%</span>
+        </div>
       </div>
 
-      <div className="w-full border-t border-border pt-4">
-        <div className="flex justify-between text-xs text-muted-foreground mb-1">
-          <span>Today's Progress</span>
-          <span>{stats.sessionsCompleted}/{dailyGoal} sessions</span>
+      {/* Stats */}
+      <div className="border-t border-border px-5 py-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[11px] text-muted-foreground">Daily Goal</span>
+          <span className="text-[11px] font-semibold" style={{ color: goalPct >= 1 ? "#27ae60" : "hsl(var(--muted-foreground))" }}>
+            {stats.sessionsCompleted}/{DAILY_GOAL}
+            {goalPct >= 1 ? " · Complete!" : ""}
+          </span>
         </div>
-        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{
-              width: `${goalProgress * 100}%`,
-              background: "hsl(var(--secondary))",
-            }}
+        <div className="h-1 rounded-full bg-muted overflow-hidden">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: cfg.ring }}
+            animate={{ width: `${goalPct * 100}%` }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
           />
         </div>
-        <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-          <span>{stats.totalFocusMinutes} min focused</span>
-          <span>{stats.sessionsCompleted >= dailyGoal ? "Goal reached!" : `${dailyGoal - stats.sessionsCompleted} to go`}</span>
+        <div className="flex justify-between mt-2">
+          <span className="text-[11px] text-muted-foreground">{stats.totalFocusMinutes} min focused</span>
+          <span className="text-[11px] text-muted-foreground">
+            {goalPct < 1 ? `${DAILY_GOAL - stats.sessionsCompleted} sessions left` : ""}
+          </span>
         </div>
       </div>
     </div>

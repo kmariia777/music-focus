@@ -20,7 +20,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   shortBreakDuration: 5,
   longBreakDuration: 15,
   sessionsBeforeLongBreak: 4,
-  autoStartMusic: false,
+  autoStartMusic: true,
   soundNotifications: true,
   darkMode: false,
 };
@@ -65,7 +65,7 @@ export default function Home() {
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
-  const [mobileTab, setMobileTab] = useState<ActiveTab>("timer");
+  const [mobileTab, setMobileTab] = useState<ActiveTab>("music");
 
   const stats = checkMidnightReset(rawStats);
 
@@ -165,8 +165,8 @@ export default function Home() {
       <div className="sticky top-14 z-20 border-b border-border bg-background/80 backdrop-blur-md lg:hidden">
         <div className="flex">
           {([
+            { id: "music" as const, icon: Music2, label: "Streams" },
             { id: "timer" as const, icon: Timer, label: "Timer" },
-            { id: "music" as const, icon: Music2, label: "Music" },
             { id: "tasks" as const, icon: CheckSquare, label: "Tasks" },
             { id: "streak" as const, icon: Flame, label: "Streak" },
           ]).map(({ id, icon: Icon, label }) => (

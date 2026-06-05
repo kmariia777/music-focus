@@ -65,6 +65,7 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const prevRunning = useRef(isTimerRunning);
+  const lastStreamRef = useRef<Stream>(STREAMS[0]);
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
@@ -110,6 +111,7 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
       stopAudio();
       setActiveId(null);
     } else {
+      lastStreamRef.current = stream;
       playStream(stream);
     }
   }, [activeId, status, stopAudio, playStream]);
@@ -122,8 +124,13 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
 
   useEffect(() => {
     if (autoStartWithTimer) {
-      if (isTimerRunning && !prevRunning.current && status === "idle") playStream(STREAMS[0]);
-      if (!isTimerRunning && prevRunning.current && (status === "playing" || status === "loading")) stopAudio();
+      if (isTimerRunning && !prevRunning.current && status === "idle") {
+        playStream(lastStreamRef.current);
+      }
+      if (!isTimerRunning && prevRunning.current && (status === "playing" || status === "loading")) {
+        stopAudio();
+        setActiveId(null);
+      }
     }
     prevRunning.current = isTimerRunning;
   }, [isTimerRunning, autoStartWithTimer, status, playStream, stopAudio]);

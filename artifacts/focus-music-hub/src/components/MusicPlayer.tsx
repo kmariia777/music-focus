@@ -69,10 +69,11 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-      audioRef.current.load();
-      audioRef.current = null;
+      const audio = audioRef.current;
+      audioRef.current = null; // null FIRST so stale async events are ignored
+      audio.pause();
+      audio.src = "";
+      audio.load();
     }
     setStatus("idle");
     setError(null);
@@ -88,17 +89,23 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
     audio.preload = "none";
     audioRef.current = audio;
 
-    audio.addEventListener("playing", () => setStatus("playing"));
-    audio.addEventListener("waiting", () => setStatus("loading"));
+    audio.addEventListener("playing", () => {
+      if (audioRef.current === audio) setStatus("playing");
+    });
+    audio.addEventListener("waiting", () => {
+      if (audioRef.current === audio) setStatus("loading");
+    });
     audio.addEventListener("error", () => {
-      setStatus("error");
-      setError("Stream unavailable — try another channel");
+      if (audioRef.current === audio) {
+        setStatus("error");
+        setError("Stream unavailable — try another channel");
+      }
     });
 
     audio.volume = isMuted ? 0 : volume / 100;
     audio.src = stream.url;
     audio.play().catch((err: Error) => {
-      if (err.name !== "AbortError") {
+      if (err.name !== "AbortError" && audioRef.current === audio) {
         setStatus("error");
         setError("Could not start stream — click to retry");
       }

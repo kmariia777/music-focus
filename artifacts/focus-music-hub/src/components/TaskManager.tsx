@@ -258,7 +258,7 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") addTask(input); }}
-            placeholder="Add a task... (Enter to save)"
+            placeholder="Add a task..."
             disabled={isListening}
             className="flex-1 px-3 py-2 text-sm rounded-xl bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[#335C81]/40 focus:border-[#335C81]/50 transition-all"
           />

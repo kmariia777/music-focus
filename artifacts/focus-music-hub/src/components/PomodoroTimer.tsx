@@ -1,6 +1,5 @@
 import { useCallback } from "react";
-import { Play, Pause, RotateCcw, SkipForward, Volume2 } from "lucide-react";
-import { Slider } from "@/components/ui/slider";
+import { Play, Pause, RotateCcw, SkipForward } from "lucide-react";
 import { motion } from "framer-motion";
 import type { TimerMode, TimerStats } from "@/hooks/useTimer";
 
@@ -12,8 +11,6 @@ interface PomodoroTimerProps {
   sessionCount: number;
   sessionsBeforeLongBreak: number;
   stats: TimerStats;
-  volume: number;
-  onVolumeChange: (v: number) => void;
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
@@ -55,8 +52,6 @@ export function PomodoroTimer({
   sessionCount,
   sessionsBeforeLongBreak,
   stats,
-  volume,
-  onVolumeChange,
   onStart,
   onPause,
   onReset,
@@ -171,21 +166,6 @@ export function PomodoroTimer({
         >
           <SkipForward size={16} />
         </button>
-      </div>
-
-      {/* Volume */}
-      <div className="px-5 pb-5">
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/40 border border-border">
-          <Volume2 size={13} className="text-muted-foreground shrink-0" />
-          <Slider
-            data-testid="slider-volume"
-            value={[volume]}
-            onValueChange={([v]) => onVolumeChange(v)}
-            min={0} max={100} step={1}
-            className="flex-1"
-          />
-          <span className="text-xs text-muted-foreground w-7 text-right tabular-nums">{volume}%</span>
-        </div>
       </div>
 
       {/* Stats */}

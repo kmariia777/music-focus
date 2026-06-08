@@ -218,8 +218,6 @@ export default function Home() {
               sessionCount={timer.sessionCount}
               sessionsBeforeLongBreak={timer.sessionsBeforeLongBreak}
               stats={stats}
-              volume={volume}
-              onVolumeChange={setVolume}
               onStart={timer.start}
               onPause={timer.pause}
               onReset={timer.reset}
@@ -259,8 +257,6 @@ export default function Home() {
               sessionCount={timer.sessionCount}
               sessionsBeforeLongBreak={timer.sessionsBeforeLongBreak}
               stats={stats}
-              volume={volume}
-              onVolumeChange={setVolume}
               onStart={timer.start}
               onPause={timer.pause}
               onReset={timer.reset}

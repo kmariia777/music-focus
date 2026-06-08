@@ -64,40 +64,57 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
   const [isMuted, setIsMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const prevRunning = useRef(isTimerRunning);
+
+  // Refs so the timer effect never stale-closes over status/activeId
+  const statusRef = useRef<StreamStatus>("idle");
+  const prevRunningRef = useRef(isTimerRunning);
   const lastStreamRef = useRef<Stream>(STREAMS[0]);
+  // When the user manually picks a stream, suppress timer auto-restart
+  const userInitiatedRef = useRef(false);
+
+  const updateStatus = (s: StreamStatus) => {
+    statusRef.current = s;
+    setStatus(s);
+  };
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
       const audio = audioRef.current;
-      audioRef.current = null; // null FIRST so stale async events are ignored
+      audioRef.current = null;
       audio.pause();
       audio.src = "";
       audio.load();
     }
-    setStatus("idle");
+    updateStatus("idle");
     setError(null);
   }, []);
 
   const playStream = useCallback((stream: Stream) => {
-    stopAudio();
-    setActiveId(stream.id);
-    setStatus("loading");
+    // Stop whatever is currently playing first
+    if (audioRef.current) {
+      const old = audioRef.current;
+      audioRef.current = null;
+      old.pause();
+      old.src = "";
+      old.load();
+    }
     setError(null);
+    setActiveId(stream.id);
+    updateStatus("loading");
 
     const audio = new Audio();
     audio.preload = "none";
     audioRef.current = audio;
 
     audio.addEventListener("playing", () => {
-      if (audioRef.current === audio) setStatus("playing");
+      if (audioRef.current === audio) updateStatus("playing");
     });
     audio.addEventListener("waiting", () => {
-      if (audioRef.current === audio) setStatus("loading");
+      if (audioRef.current === audio) updateStatus("loading");
     });
     audio.addEventListener("error", () => {
       if (audioRef.current === audio) {
-        setStatus("error");
+        updateStatus("error");
         setError("Stream unavailable — try another channel");
       }
     });
@@ -106,43 +123,58 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
     audio.src = stream.url;
     audio.play().catch((err: Error) => {
       if (err.name !== "AbortError" && audioRef.current === audio) {
-        setStatus("error");
+        updateStatus("error");
         setError("Could not start stream — click to retry");
       }
     });
-  }, [stopAudio, volume, isMuted]);
+  }, [volume, isMuted]);
 
-  const handleClick = useCallback((stream: Stream) => {
-    const isActive = activeId === stream.id && (status === "playing" || status === "loading");
-    if (isActive) {
-      stopAudio();
-      setActiveId(null);
-    } else {
-      lastStreamRef.current = stream;
-      playStream(stream);
-    }
-  }, [activeId, status, stopAudio, playStream]);
-
+  // Sync volume/mute to existing audio without recreating it
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume / 100;
     }
   }, [volume, isMuted]);
 
+  // Timer auto-start/stop — does NOT depend on status so it won't re-trigger mid-stream-switch
   useEffect(() => {
-    if (autoStartWithTimer) {
-      if (isTimerRunning && !prevRunning.current && status === "idle") {
+    const wasRunning = prevRunningRef.current;
+    prevRunningRef.current = isTimerRunning;
+
+    if (!autoStartWithTimer) return;
+
+    if (isTimerRunning && !wasRunning) {
+      // Timer just started — only auto-play if nothing is already playing
+      if (statusRef.current === "idle" && !userInitiatedRef.current) {
         playStream(lastStreamRef.current);
       }
-      if (!isTimerRunning && prevRunning.current && (status === "playing" || status === "loading")) {
+    }
+
+    if (!isTimerRunning && wasRunning) {
+      // Timer just stopped — only stop if we were the ones who started it
+      if (!userInitiatedRef.current && (statusRef.current === "playing" || statusRef.current === "loading")) {
         stopAudio();
         setActiveId(null);
       }
+      userInitiatedRef.current = false;
     }
-    prevRunning.current = isTimerRunning;
-  }, [isTimerRunning, autoStartWithTimer, status, playStream, stopAudio]);
+  }, [isTimerRunning, autoStartWithTimer, playStream, stopAudio]);
 
+  // Cleanup on unmount
   useEffect(() => () => { stopAudio(); }, [stopAudio]);
+
+  const handleClick = useCallback((stream: Stream) => {
+    const isActive = activeId === stream.id && (status === "playing" || status === "loading");
+    if (isActive) {
+      userInitiatedRef.current = false;
+      stopAudio();
+      setActiveId(null);
+    } else {
+      userInitiatedRef.current = true;
+      lastStreamRef.current = stream;
+      playStream(stream);
+    }
+  }, [activeId, status, stopAudio, playStream]);
 
   const activeStream = STREAMS.find((s) => s.id === activeId);
 
@@ -198,9 +230,7 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
               </div>
 
               <div className="flex-1 min-w-0 text-left">
-                <p className={`text-sm font-semibold leading-none mb-0.5 ${isPlaying || isLoading ? "text-foreground" : "text-foreground"}`}>
-                  {stream.label}
-                </p>
+                <p className="text-sm font-semibold leading-none mb-0.5 text-foreground">{stream.label}</p>
                 <p className="text-[11px] text-muted-foreground truncate">{stream.description}</p>
               </div>
 
@@ -251,13 +281,22 @@ export function MusicPlayer({ volume, onVolumeChange, autoStartWithTimer, isTime
         )}
       </AnimatePresence>
 
+      {/* Single volume control */}
       <div className="px-5 pb-5 pt-1">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border">
-          <Volume2 size={13} className="text-muted-foreground shrink-0" />
+          <button
+            onClick={() => setIsMuted((m) => !m)}
+            className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+          >
+            {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+          </button>
           <Slider
             data-testid="slider-music-volume"
             value={[isMuted ? 0 : volume]}
-            onValueChange={([v]) => { onVolumeChange(v); if (v > 0) setIsMuted(false); }}
+            onValueChange={([v]) => {
+              onVolumeChange(v);
+              if (v > 0) setIsMuted(false);
+            }}
             min={0} max={100} step={1}
             className="flex-1"
           />

@@ -140,18 +140,21 @@ export function AICoach({
         buffer = lines.pop() ?? "";
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
+          let data: { content?: string; done?: boolean; error?: string };
           try {
-            const data = JSON.parse(line.slice(6)) as { content?: string; done?: boolean; error?: string };
-            if (data.error) throw new Error(data.error);
-            if (data.content) {
-              full += data.content;
-              setMessages((prev) => {
-                const next = [...prev];
-                next[next.length - 1] = { role: "assistant", content: full };
-                return next;
-              });
-            }
-          } catch { /* malformed chunk */ }
+            data = JSON.parse(line.slice(6)) as typeof data;
+          } catch {
+            continue; // malformed JSON chunk, skip
+          }
+          if (data.error) throw new Error(data.error);
+          if (data.content) {
+            full += data.content;
+            setMessages((prev) => {
+              const next = [...prev];
+              next[next.length - 1] = { role: "assistant", content: full };
+              return next;
+            });
+          }
         }
       }
     } catch (err) {

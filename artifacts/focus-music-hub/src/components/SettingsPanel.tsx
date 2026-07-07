@@ -21,6 +21,7 @@ interface SettingsPanelProps {
   open: boolean;
   settings: AppSettings;
   currentMode: TimerMode;
+  history: Record<string, number>;
   onModeChange: (m: TimerMode) => void;
   onSettingsChange: (s: AppSettings) => void;
   onClose: () => void;
@@ -43,6 +44,7 @@ const MODE_COLORS: Record<TimerMode, string> = {
 export function SettingsPanel({
   open,
   settings,
+  history,
   currentMode,
   onModeChange,
   onSettingsChange,
@@ -93,6 +95,12 @@ export function SettingsPanel({
             </div>
 
             <div className="flex-1 px-6 py-6 flex flex-col gap-8">
+
+              {/* This Week */}
+              <section>
+                <SectionTitle>This Week</SectionTitle>
+                <WeekChart history={history} />
+              </section>
 
               {/* Session Mode */}
               <section>
@@ -342,6 +350,70 @@ function ToggleSetting({ label, description, checked, onChange, testId }: {
         {description && <p className="text-[11px] text-muted-foreground mt-0.5">{description}</p>}
       </div>
       <Switch data-testid={testId} checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+function WeekChart({ history }: { history: Record<string, number> }) {
+  const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const today = new Date();
+  const todayKey = today.toDateString();
+
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (6 - i));
+    return { key: d.toDateString(), label: DAYS[d.getDay()], isToday: d.toDateString() === todayKey };
+  });
+
+  const counts = days.map((d) => history[d.key] ?? 0);
+  const maxCount = Math.max(...counts, 1);
+  const totalWeek = counts.reduce((a, b) => a + b, 0);
+  const BAR_H = 60;
+
+  return (
+    <div>
+      <div className="flex items-end gap-1.5 w-full" style={{ height: BAR_H + 32 }}>
+        {days.map((day, i) => {
+          const count = counts[i];
+          const filled = count > 0;
+          const barH = Math.max(count / maxCount * BAR_H, filled ? 4 : 2);
+          return (
+            <div key={day.key} className="flex-1 flex flex-col items-center justify-end gap-1" style={{ height: BAR_H + 32 }}>
+              {count > 0 && (
+                <span className="text-[9px] font-semibold tabular-nums" style={{ color: day.isToday ? "#8b5cf6" : "hsl(var(--muted-foreground))" }}>
+                  {count}
+                </span>
+              )}
+              <div
+                className="w-full rounded-md transition-all duration-500"
+                style={{
+                  height: barH,
+                  background: day.isToday
+                    ? "linear-gradient(to top, #6d28d9, #a78bfa)"
+                    : filled
+                    ? "hsl(var(--primary) / 0.35)"
+                    : "hsl(var(--muted))",
+                  minHeight: 2,
+                }}
+              />
+              <span
+                className="text-[9px] font-medium"
+                style={{ color: day.isToday ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))" }}
+              >
+                {day.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+        <span className="text-[10px] text-muted-foreground">
+          {totalWeek} session{totalWeek !== 1 ? "s" : ""} this week
+        </span>
+        <span className="text-[10px] text-muted-foreground">
+          best day: {Math.max(...counts)} session{Math.max(...counts) !== 1 ? "s" : ""}
+        </span>
+      </div>
     </div>
   );
 }

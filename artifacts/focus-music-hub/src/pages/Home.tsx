@@ -41,6 +41,7 @@ export default function Home() {
   const [settings, setSettings] = useLocalStorage<AppSettings>("focusMusicHubSettings", DEFAULT_SETTINGS);
   const [rawStats, setStats] = useLocalStorage<TimerStats>("focusMusicHubStats", DEFAULT_STATS);
   const [tasks, setTasks] = useLocalStorage<Task[]>("focusMusicHubTasks", []);
+  const [history, setHistory] = useLocalStorage<Record<string, number>>("focusMusicHubHistory", {});
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -57,7 +58,10 @@ export default function Home() {
       sessionsBeforeLongBreak: settings.sessionsBeforeLongBreak,
     },
     stats,
-    onStatsUpdate: setStats,
+    onStatsUpdate: (s) => {
+      setStats(s);
+      setHistory((prev) => ({ ...prev, [new Date().toDateString()]: s.sessionsCompleted }));
+    },
     soundEnabled: settings.soundNotifications,
   });
 
@@ -212,6 +216,7 @@ export default function Home() {
         open={settingsOpen}
         settings={settings}
         currentMode={timer.mode}
+        history={history}
         onModeChange={timer.setMode}
         onSettingsChange={handleSettingsChange}
         onClose={() => setSettingsOpen(false)}

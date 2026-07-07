@@ -1,3 +1,22 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6d28d9"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="40" fill="url(#bg)"/>
+  <!-- timer stem top-center -->
+  <rect x="82" y="30" width="16" height="9" rx="4.5" fill="white"/>
+  <!-- timer crown tabs at 10 and 2 -->
+  <rect x="55" y="43" width="10" height="9" rx="3" transform="rotate(-35 60 47)" fill="white"/>
+  <rect x="115" y="43" width="10" height="9" rx="3" transform="rotate(35 120 47)" fill="white"/>
+  <!-- clock face -->
+  <circle cx="90" cy="106" r="52" stroke="white" stroke-width="10" fill="none"/>
+  <!-- minute hand (12 o'clock) -->
+  <line x1="90" y1="106" x2="90" y2="74" stroke="white" stroke-width="9" stroke-linecap="round"/>
+  <!-- hour hand (~10 o'clock) -->
+  <line x1="90" y1="106" x2="68" y2="88" stroke="white" stroke-width="9" stroke-linecap="round"/>
+  <!-- center dot -->
+  <circle cx="90" cy="106" r="7" fill="white"/>
 </svg>

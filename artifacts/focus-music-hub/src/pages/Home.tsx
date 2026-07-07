@@ -21,6 +21,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   soundNotifications: true,
   darkMode: true,
   openaiApiKey: "",
+  showCoach: false,
 };
 
 const DEFAULT_STATS: TimerStats = {
@@ -201,16 +202,18 @@ export default function Home() {
         </div>
       </main>
 
-      <AICoach
-        apiKey={settings.openaiApiKey}
-        isTimerRunning={timer.isRunning}
-        sessionsCompleted={stats.sessionsCompleted}
-        hasTasks={tasks.length > 0}
-        onStartTimer={timer.start}
-        onStartBreak={() => { timer.setMode("short-break"); timer.start(); }}
-        onFocusTaskInput={() => document.querySelector<HTMLInputElement>('[data-testid="input-task"]')?.focus()}
-        onOpenSettings={() => setSettingsOpen(true)}
-      />
+      {settings.openaiApiKey && settings.showCoach && (
+        <AICoach
+          apiKey={settings.openaiApiKey}
+          isTimerRunning={timer.isRunning}
+          sessionsCompleted={stats.sessionsCompleted}
+          hasTasks={tasks.length > 0}
+          onStartTimer={timer.start}
+          onStartBreak={() => { timer.setMode("short-break"); timer.start(); }}
+          onFocusTaskInput={() => document.querySelector<HTMLInputElement>('[data-testid="input-task"]')?.focus()}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
+      )}
 
       <SettingsPanel
         open={settingsOpen}

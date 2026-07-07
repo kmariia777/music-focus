@@ -15,6 +15,7 @@ export interface AppSettings {
   soundNotifications: boolean;
   darkMode: boolean;
   openaiApiKey: string;
+  showCoach: boolean;
 }
 
 interface SettingsPanelProps {
@@ -245,7 +246,7 @@ export function SettingsPanel({
               {/* AI Coach */}
               <section>
                 <SectionTitle>AI Coach</SectionTitle>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
                     Uses GPT-4o mini via your OpenAI key. Stored locally only.
                   </p>
@@ -266,20 +267,30 @@ export function SettingsPanel({
                       {showKey ? <EyeOff size={13} /> : <Eye size={13} />}
                     </button>
                   </div>
-                  {settings.openaiApiKey && (
-                    <p className="text-[10px] text-emerald-400 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-                      Key saved — Coach is ready
-                    </p>
+                  {settings.openaiApiKey ? (
+                    <>
+                      <p className="text-[10px] text-emerald-400 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                        Key saved
+                      </p>
+                      <ToggleSetting
+                        label="Show Coach button"
+                        description="Display the Coach FAB on the main screen"
+                        checked={settings.showCoach}
+                        onChange={(v) => update({ showCoach: v })}
+                        testId="toggle-show-coach"
+                      />
+                    </>
+                  ) : (
+                    <a
+                      href="https://platform.openai.com/api-keys"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Get a key at platform.openai.com →
+                    </a>
                   )}
-                  <a
-                    href="https://platform.openai.com/api-keys"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Get a key at platform.openai.com →
-                  </a>
                 </div>
               </section>
 

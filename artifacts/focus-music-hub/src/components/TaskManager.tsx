@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { Plus, Trash2, Mic, Flag, Check, Pencil, X } from "lucide-react";
+import { Plus, Trash2, Mic, Flag, Check, Pencil, X, Share2, ClipboardCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export type TaskStatus = "not-done" | "in-progress" | "done";
@@ -102,8 +102,37 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
   const [filter, setFilter] = useState<FilterTab>("active");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
+  const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const editRef = useRef<HTMLInputElement>(null);
+
+  const shareTasks = useCallback(async () => {
+    const activeTasks = tasks.filter((t) => t.status !== "done");
+    const doneTasks = tasks.filter((t) => t.status === "done");
+    const PRIORITY_LABEL: Record<TaskPriority, string> = { high: " !!!", medium: " !!", none: "" };
+    const fmt = (t: Task) => `${t.status === "in-progress" ? "▶ " : "• "}${t.text}${PRIORITY_LABEL[t.priority ?? "none"]}`;
+
+    const lines = [
+      `Focus Music Hub — Task List`,
+      `${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}`,
+      "",
+      ...(activeTasks.length > 0 ? ["TO DO", ...activeTasks.map(fmt), ""] : []),
+      ...(doneTasks.length > 0 ? ["DONE", ...doneTasks.map(fmt)] : []),
+    ];
+    const text = lines.join("\n");
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "My task list", text });
+        return;
+      } catch {
+        // fall through to clipboard
+      }
+    }
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [tasks]);
 
   const addTask = useCallback((text: string) => {
     const trimmed = text.trim();
@@ -212,11 +241,29 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
       <div className="px-5 pt-5 pb-0">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-foreground text-xs tracking-widest uppercase">Tasks</h2>
-          {total > 0 && (
-            <span className="text-[11px] text-muted-foreground tabular-nums">
-              {doneCount}/{total} done
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {total > 0 && (
+              <span className="text-[11px] text-muted-foreground tabular-nums">
+                {doneCount}/{total} done
+              </span>
+            )}
+            {tasks.length > 0 && (
+              <button
+                onClick={shareTasks}
+                title={copied ? "Copied!" : "Share tasks"}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-all"
+                style={{
+                  background: copied ? "#34d39920" : "hsl(var(--muted))",
+                  color: copied ? "#34d399" : "hsl(var(--muted-foreground))",
+                }}
+              >
+                {copied
+                  ? <><ClipboardCheck size={11} /> Copied</>
+                  : <><Share2 size={11} /> Share</>
+                }
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Progress bar */}
@@ -224,7 +271,7 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
           <div className="h-1 rounded-full bg-muted overflow-hidden mb-4">
             <motion.div
               className="h-full rounded-full"
-              style={{ background: progressPct === 100 ? "#27ae60" : "#335C81" }}
+              style={{ background: progressPct === 100 ? "#34d399" : "#8b5cf6" }}
               animate={{ width: `${progressPct}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
@@ -239,7 +286,7 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
               onClick={() => setFilter(id)}
               className={`text-[11px] font-semibold pb-2.5 pt-0.5 mr-4 border-b-2 transition-all ${
                 filter === id
-                  ? "border-[#335C81] text-foreground"
+                  ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -260,7 +307,7 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
             onKeyDown={(e) => { if (e.key === "Enter") addTask(input); }}
             placeholder="Add a task..."
             disabled={isListening}
-            className="flex-1 px-3 py-2 text-sm rounded-xl bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[#335C81]/40 focus:border-[#335C81]/50 transition-all"
+            className="flex-1 px-3 py-2 text-sm rounded-xl bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all"
           />
           <button
             data-testid="button-voice-input"
@@ -270,7 +317,7 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
             className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-all ${
               isListening
                 ? "bg-red-500 border-red-500 text-white animate-pulse"
-                : "bg-muted border-border text-muted-foreground hover:text-foreground hover:border-[#77ACA2]"
+                : "bg-muted border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
             }`}
           >
             <Mic size={15} />
@@ -280,7 +327,7 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
             onClick={() => addTask(input)}
             title="Add task"
             className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all"
-            style={{ background: "#335C81", color: "#fff" }}
+            style={{ background: "linear-gradient(135deg, #6d28d9, #8b5cf6)", color: "#fff" }}
           >
             <Plus size={15} />
           </button>
@@ -333,7 +380,7 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
                   isDone
                     ? "bg-muted/20 border-border/60"
                     : isInProgress
-                    ? "bg-[#335C81]/04 border-[#335C81]/20"
+                    ? "bg-primary/[0.04] border-primary/20"
                     : "bg-muted/40 border-border hover:bg-muted/60"
                 }`}
               >
@@ -343,12 +390,12 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
                   onClick={() => handleToggleDone(task.id)}
                   title={isDone ? "Mark undone" : "Mark done"}
                   className={`mt-0.5 w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all hover:scale-105 ${
-                    isDone ? "border-[#27ae60] bg-[#27ae60]" : isInProgress ? "border-[#335C81]" : "border-muted-foreground/40 hover:border-[#335C81]"
+                    isDone ? "border-[#34d399] bg-[#34d399]" : isInProgress ? "border-primary" : "border-muted-foreground/40 hover:border-primary"
                   }`}
                 >
                   {isDone && <Check size={10} className="text-white" strokeWidth={3} />}
                   {isInProgress && !isDone && (
-                    <div className="w-2 h-2 rounded-full bg-[#335C81]" />
+                    <div className="w-2 h-2 rounded-full bg-primary" />
                   )}
                 </button>
 
@@ -364,7 +411,7 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
                         if (e.key === "Escape") { setEditingId(null); setEditText(""); }
                       }}
                       onBlur={() => commitEdit(task.id)}
-                      className="w-full text-sm bg-transparent border-b border-[#335C81]/50 focus:outline-none text-foreground pb-0.5"
+                      className="w-full text-sm bg-transparent border-b border-primary/50 focus:outline-none text-foreground pb-0.5"
                     />
                   ) : (
                     <p
@@ -383,7 +430,7 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
                       <button
                         onClick={() => handleToggleInProgress(task.id)}
                         className={`text-[10px] font-medium transition-colors ${
-                          isInProgress ? "text-[#335C81]" : "text-muted-foreground/50 hover:text-muted-foreground"
+                          isInProgress ? "text-primary" : "text-muted-foreground/50 hover:text-muted-foreground"
                         }`}
                       >
                         {isInProgress ? "In progress" : "· Start"}

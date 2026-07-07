@@ -33,9 +33,9 @@ const SESSION_MODES: { mode: TimerMode; label: string; Icon: React.ComponentType
 ];
 
 const MODE_COLORS: Record<TimerMode, string> = {
-  work: "#335C81",
-  "short-break": "#77ACA2",
-  "long-break": "#9DBEBB",
+  work: "#8b5cf6",
+  "short-break": "#34d399",
+  "long-break": "#5b8dee",
 };
 
 export function SettingsPanel({
@@ -148,8 +148,8 @@ export function SettingsPanel({
                         onClick={() => update({ workDuration: p.work, shortBreakDuration: p.short, longBreakDuration: p.long })}
                         className={`flex-1 py-2 text-xs rounded-xl border font-medium transition-all ${
                           active
-                            ? "border-[#335C81]/50 bg-[#335C81]/10 text-foreground"
-                            : "border-border bg-muted/50 text-muted-foreground hover:border-[#335C81]/30 hover:text-foreground"
+                            ? "border-primary/50 bg-primary/10 text-foreground"
+                            : "border-border bg-muted/50 text-muted-foreground hover:border-primary/30 hover:text-foreground"
                         }`}
                       >
                         {p.label}
@@ -166,7 +166,7 @@ export function SettingsPanel({
                     min={1} max={120}
                     onChange={(v) => update({ workDuration: v })}
                     testId="slider-work-duration"
-                    color="#335C81"
+                    color="#8b5cf6"
                   />
                   <SliderSetting
                     label="Short Break"
@@ -175,7 +175,7 @@ export function SettingsPanel({
                     min={1} max={30}
                     onChange={(v) => update({ shortBreakDuration: v })}
                     testId="slider-short-break"
-                    color="#77ACA2"
+                    color="#34d399"
                   />
                   <SliderSetting
                     label="Long Break"
@@ -184,7 +184,7 @@ export function SettingsPanel({
                     min={1} max={60}
                     onChange={(v) => update({ longBreakDuration: v })}
                     testId="slider-long-break"
-                    color="#9DBEBB"
+                    color="#5b8dee"
                   />
                   <SliderSetting
                     label="Sessions before long break"
@@ -193,7 +193,7 @@ export function SettingsPanel({
                     min={2} max={10}
                     onChange={(v) => update({ sessionsBeforeLongBreak: v })}
                     testId="slider-sessions"
-                    color="#335C81"
+                    color="#8b5cf6"
                   />
                 </div>
               </section>

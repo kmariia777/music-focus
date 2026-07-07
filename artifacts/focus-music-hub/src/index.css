@@ -67,15 +67,90 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* ─── Dark Purple Theme (always-on dark mode) ─── */
+/* ─── Light Purple Theme (default) ─── */
 :root {
+  --button-outline: rgba(0,0,0,.10);
+  --badge-outline: rgba(0,0,0,.05);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(0,0,0,.03);
+  --elevate-2: rgba(0,0,0,.07);
+
+  --background: 250 40% 97%;
+  --foreground: 252 45% 12%;
+  --border: 252 25% 86%;
+  --input: 252 25% 88%;
+  --ring: 265 70% 55%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 252 45% 12%;
+  --card-border: 252 25% 90%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 252 45% 12%;
+  --popover-border: 252 25% 88%;
+
+  --primary: 265 70% 55%;
+  --primary-foreground: 0 0% 100%;
+  --primary-border: hsl(265 70% 48%);
+
+  --secondary: 252 25% 90%;
+  --secondary-foreground: 252 45% 12%;
+  --secondary-border: hsl(252 25% 83%);
+
+  --muted: 252 30% 92%;
+  --muted-foreground: 252 20% 48%;
+  --muted-border: hsl(252 30% 85%);
+
+  --accent: 265 55% 60%;
+  --accent-foreground: 0 0% 100%;
+  --accent-border: hsl(265 55% 53%);
+
+  --destructive: 0 70% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --destructive-border: hsl(0 70% 48%);
+
+  --chart-1: 265 70% 55%;
+  --chart-2: 210 80% 55%;
+  --chart-3: 160 65% 45%;
+  --chart-4: 38 92% 55%;
+  --chart-5: 145 60% 45%;
+
+  --sidebar: 250 40% 97%;
+  --sidebar-foreground: 252 45% 12%;
+  --sidebar-border: 252 25% 86%;
+  --sidebar-primary: 265 70% 55%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-primary-border: hsl(265 70% 48%);
+  --sidebar-accent: 160 65% 45%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-accent-border: hsl(160 65% 38%);
+  --sidebar-ring: 265 70% 55%;
+
+  --app-font-sans: 'Inter', sans-serif;
+  --app-font-serif: Georgia, serif;
+  --app-font-mono: Menlo, monospace;
+  --radius: .75rem;
+
+  --shadow-2xs: 0px 2px 8px 0px rgba(100,80,180,.08);
+  --shadow-xs: 0px 2px 8px 0px rgba(100,80,180,.08);
+  --shadow-sm: 0px 4px 12px 0px rgba(100,80,180,.1);
+  --shadow: 0px 4px 16px 0px rgba(100,80,180,.1);
+  --shadow-md: 0px 6px 20px 0px rgba(100,80,180,.12);
+  --shadow-lg: 0px 8px 28px 0px rgba(100,80,180,.14);
+  --shadow-xl: 0px 12px 40px 0px rgba(100,80,180,.16);
+  --shadow-2xl: 0px 20px 60px 0px rgba(100,80,180,.2);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+/* ─── Dark Purple Theme ─── */
+.dark {
   --button-outline: rgba(255,255,255,.10);
   --badge-outline: rgba(255,255,255,.05);
   --opaque-button-border-intensity: 9;
   --elevate-1: rgba(255,255,255,.04);
   --elevate-2: rgba(255,255,255,.09);
 
-  /* Purple-navy dark background */
   --background: 252 40% 8%;
   --foreground: 250 60% 96%;
   --border: 252 30% 22%;
@@ -90,7 +165,6 @@
   --popover-foreground: 250 60% 96%;
   --popover-border: 252 30% 20%;
 
-  /* Purple primary */
   --primary: 265 80% 65%;
   --primary-foreground: 0 0% 100%;
   --primary-border: hsl(265 80% 58%);
@@ -128,11 +202,6 @@
   --sidebar-accent-border: hsl(160 70% 48%);
   --sidebar-ring: 265 80% 65%;
 
-  --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: Georgia, serif;
-  --app-font-mono: Menlo, monospace;
-  --radius: .75rem;
-
   --shadow-2xs: 0px 2px 8px 0px rgba(0,0,0,.5);
   --shadow-xs: 0px 2px 8px 0px rgba(0,0,0,.5);
   --shadow-sm: 0px 4px 12px 0px rgba(0,0,0,.4);
@@ -141,22 +210,6 @@
   --shadow-lg: 0px 8px 28px 0px rgba(0,0,0,.5);
   --shadow-xl: 0px 12px 40px 0px rgba(0,0,0,.55);
   --shadow-2xl: 0px 20px 60px 0px rgba(0,0,0,.6);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
-}
-
-/* Keep .dark class in sync for any components that check it */
-.dark {
-  --background: 252 40% 8%;
-  --foreground: 250 60% 96%;
-  --border: 252 30% 22%;
-  --card: 252 35% 12%;
-  --card-foreground: 250 60% 96%;
-  --card-border: 252 30% 20%;
-  --muted: 252 30% 18%;
-  --muted-foreground: 250 20% 58%;
-  --primary: 265 80% 65%;
-  --primary-foreground: 0 0% 100%;
 }
 
 @layer base {

@@ -6,7 +6,6 @@ import type { Task } from "@/components/TaskManager";
 import { AICoach } from "@/components/AICoach";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import type { AppSettings } from "@/components/SettingsPanel";
-import type { DailyRecord } from "@/components/StreakHeatmap";
 import { CalendarTaskModal } from "@/components/CalendarTaskModal";
 import type { CalendarEvent } from "@/components/CalendarTaskModal";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -56,28 +55,18 @@ export default function Home() {
   const [settings, setSettings] = useLocalStorage<AppSettings>("focusMusicHubSettings", DEFAULT_SETTINGS);
   const [rawStats, setStats] = useLocalStorage<TimerStats>("focusMusicHubStats", DEFAULT_STATS);
   const [tasks, setTasks] = useLocalStorage<Task[]>("focusMusicHubTasks", []);
-  const [history, setHistory] = useLocalStorage<DailyRecord[]>("focusMusicHubHistory", []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
 
-  // Force dark class always
+  // Sync dark mode class with settings
   useEffect(() => {
-    document.documentElement.classList.add("dark");
-  }, []);
+    document.documentElement.classList.toggle("dark", settings.darkMode);
+  }, [settings.darkMode]);
 
   const stats = checkMidnightReset(rawStats);
-
-  const recordSession = useCallback((s: TimerStats) => {
-    const today = new Date().toDateString();
-    setHistory((prev) => {
-      const exists = prev.find((d) => d.date === today);
-      if (exists) return prev.map((d) => d.date === today ? { ...d, sessions: s.sessionsCompleted, minutes: s.totalFocusMinutes } : d);
-      return [...prev, { date: today, sessions: s.sessionsCompleted, minutes: s.totalFocusMinutes }];
-    });
-  }, [setHistory]);
 
   const timer = useTimer({
     settings: {
@@ -87,7 +76,7 @@ export default function Home() {
       sessionsBeforeLongBreak: settings.sessionsBeforeLongBreak,
     },
     stats,
-    onStatsUpdate: (s) => { setStats(s); recordSession(s); },
+    onStatsUpdate: setStats,
     soundEnabled: settings.soundNotifications,
   });
 
@@ -99,8 +88,7 @@ export default function Home() {
 
   const handleSettingsChange = useCallback((s: AppSettings) => {
     setSettings(s);
-    // Keep dark class always on
-    document.documentElement.classList.add("dark");
+    document.documentElement.classList.toggle("dark", s.darkMode);
   }, [setSettings]);
 
   const fetchCalendarEvents = useCallback(async () => {

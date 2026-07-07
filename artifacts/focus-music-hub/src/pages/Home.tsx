@@ -6,13 +6,11 @@ import type { Task } from "@/components/TaskManager";
 import { AICoach } from "@/components/AICoach";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import type { AppSettings } from "@/components/SettingsPanel";
-import { CalendarTaskModal } from "@/components/CalendarTaskModal";
-import type { CalendarEvent } from "@/components/CalendarTaskModal";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useTimer } from "@/hooks/useTimer";
 import type { TimerStats } from "@/hooks/useTimer";
 import { useAudio } from "@/hooks/useAudio";
-import { CalendarDays, SlidersHorizontal, Timer } from "lucide-react";
+import { SlidersHorizontal, Timer } from "lucide-react";
 
 const DEFAULT_SETTINGS: AppSettings = {
   workDuration: 25,
@@ -22,6 +20,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoStartMusic: true,
   soundNotifications: true,
   darkMode: true,
+  openaiApiKey: "",
 };
 
 const DEFAULT_STATS: TimerStats = {
@@ -38,30 +37,12 @@ function checkMidnightReset(stats: TimerStats): TimerStats {
   return stats;
 }
 
-function formatDueLabel(dueDate?: string): string {
-  if (!dueDate) return "";
-  const d = new Date(dueDate);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-  const due = new Date(d); due.setHours(0, 0, 0, 0);
-  if (due.getTime() === today.getTime()) return "Today";
-  if (due.getTime() === tomorrow.getTime()) return "Tomorrow";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-
 export default function Home() {
   const [settings, setSettings] = useLocalStorage<AppSettings>("focusMusicHubSettings", DEFAULT_SETTINGS);
   const [rawStats, setStats] = useLocalStorage<TimerStats>("focusMusicHubStats", DEFAULT_STATS);
   const [tasks, setTasks] = useLocalStorage<Task[]>("focusMusicHubTasks", []);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [calendarConnected, setCalendarConnected] = useState(false);
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
-  const [loadingEvents, setLoadingEvents] = useState(false);
 
-  // Sync dark mode class with settings
   useEffect(() => {
     document.documentElement.classList.toggle("dark", settings.darkMode);
   }, [settings.darkMode]);
@@ -80,7 +61,6 @@ export default function Home() {
     soundEnabled: settings.soundNotifications,
   });
 
-  // Single audio instance — no more double-play possible
   const audio = useAudio({
     isTimerRunning: timer.isRunning,
     autoStartWithTimer: settings.autoStartMusic,
@@ -90,32 +70,6 @@ export default function Home() {
     setSettings(s);
     document.documentElement.classList.toggle("dark", s.darkMode);
   }, [setSettings]);
-
-  const fetchCalendarEvents = useCallback(async () => {
-    setLoadingEvents(true);
-    try {
-      const resp = await fetch(`${BASE}/api/calendar/events`);
-      if (!resp.ok) { setCalendarConnected(false); return; }
-      const data = await resp.json() as CalendarEvent[];
-      setCalendarEvents(data);
-      setCalendarConnected(true);
-    } catch { setCalendarConnected(false); }
-    finally { setLoadingEvents(false); }
-  }, []);
-
-  useEffect(() => { fetchCalendarEvents(); }, [fetchCalendarEvents]);
-
-  const handleAddScheduledTask = useCallback((text: string, dueDate?: string) => {
-    const now = new Date().toISOString();
-    const label = dueDate ? ` [${formatDueLabel(dueDate)}]` : "";
-    setTasks((prev) => [{
-      id: Date.now(),
-      text: `${text}${label}`,
-      status: "not-done",
-      createdAt: now,
-      dateString: new Date(now).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }),
-    }, ...prev]);
-  }, [setTasks]);
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
@@ -140,27 +94,14 @@ export default function Home() {
             <span className="font-semibold text-foreground text-sm tracking-tight">Focus Music Hub</span>
           </div>
 
-          <div className="flex items-center gap-1">
-            <button
-              data-testid="button-open-calendar"
-              onClick={() => { setCalendarOpen(true); fetchCalendarEvents(); }}
-              className="relative flex items-center gap-1.5 h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg hover:bg-white/8 transition-all"
-            >
-              <CalendarDays size={14} />
-              <span className="hidden sm:inline">Calendar</span>
-              {calendarConnected && (
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              )}
-            </button>
-            <button
-              data-testid="button-header-settings"
-              onClick={() => setSettingsOpen(true)}
-              className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg hover:bg-white/8 transition-all"
-            >
-              <SlidersHorizontal size={14} />
-              <span className="hidden sm:inline">Configure</span>
-            </button>
-          </div>
+          <button
+            data-testid="button-header-settings"
+            onClick={() => setSettingsOpen(true)}
+            className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg hover:bg-white/8 transition-all"
+          >
+            <SlidersHorizontal size={14} />
+            <span className="hidden sm:inline">Configure</span>
+          </button>
         </div>
       </header>
 
@@ -172,7 +113,6 @@ export default function Home() {
 
           {/* Left — Timer + Tasks */}
           <div className="flex flex-col gap-5">
-            {/* Timer card */}
             <div className="rounded-2xl p-6" style={{
               background: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(255,255,255,0.09)",
@@ -197,8 +137,6 @@ export default function Home() {
                 onPrevStream={audio.playPrev}
               />
             </div>
-
-            {/* Tasks */}
             <TaskManager tasks={tasks} onTasksChange={setTasks} />
           </div>
 
@@ -220,7 +158,6 @@ export default function Home() {
 
         {/* MOBILE — scrollable single column */}
         <div className="lg:hidden flex flex-col gap-5">
-          {/* Timer card */}
           <div className="rounded-2xl p-5" style={{
             background: "rgba(255,255,255,0.04)",
             border: "1px solid rgba(255,255,255,0.09)",
@@ -245,11 +182,7 @@ export default function Home() {
               onPrevStream={audio.playPrev}
             />
           </div>
-
-          {/* Tasks */}
           <TaskManager tasks={tasks} onTasksChange={setTasks} />
-
-          {/* Full stream selector */}
           <MusicPlayer
             streams={audio.streams}
             activeId={audio.activeId}
@@ -265,12 +198,14 @@ export default function Home() {
       </main>
 
       <AICoach
+        apiKey={settings.openaiApiKey}
         isTimerRunning={timer.isRunning}
         sessionsCompleted={stats.sessionsCompleted}
         hasTasks={tasks.length > 0}
         onStartTimer={timer.start}
         onStartBreak={() => { timer.setMode("short-break"); timer.start(); }}
         onFocusTaskInput={() => document.querySelector<HTMLInputElement>('[data-testid="input-task"]')?.focus()}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       <SettingsPanel
@@ -282,16 +217,6 @@ export default function Home() {
         onClose={() => setSettingsOpen(false)}
         onResetStats={() => setStats({ sessionsCompleted: 0, totalFocusMinutes: 0, lastResetDate: new Date().toDateString() })}
         onClearTasks={() => setTasks([])}
-      />
-
-      <CalendarTaskModal
-        open={calendarOpen}
-        onClose={() => setCalendarOpen(false)}
-        onAddTask={handleAddScheduledTask}
-        isConnected={calendarConnected}
-        events={calendarEvents}
-        isLoadingEvents={loadingEvents}
-        onConnect={() => window.open("https://replit.com", "_blank")}
       />
     </div>
   );

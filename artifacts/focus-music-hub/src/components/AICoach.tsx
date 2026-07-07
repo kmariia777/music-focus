@@ -1,16 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, Sparkles, Play, Coffee, ListPlus, ChevronRight, Send, Loader2 } from "lucide-react";
+import { X, Sparkles, Play, Coffee, ListPlus, ChevronRight, Send, Loader2, KeyRound } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const SYSTEM_PROMPT = `You are an ADHD-aware focus coach embedded in a Pomodoro productivity app called Focus Music Hub.
+Your role: help users start, stay focused, and finish their work sessions. Be warm, brief, and practical.
+Avoid long lists. Prefer 1-2 sentence responses unless the user asks for more detail.
+If the user seems stuck or overwhelmed, break the problem into one tiny next action.
+You know their current context from the app state provided.`;
 
 interface AICoachProps {
+  apiKey: string;
   isTimerRunning: boolean;
   sessionsCompleted: number;
   hasTasks: boolean;
   onStartTimer: () => void;
   onStartBreak: () => void;
   onFocusTaskInput: () => void;
+  onOpenSettings: () => void;
 }
 
 interface Message {
@@ -36,12 +42,14 @@ function getWelcome(isRunning: boolean, sessions: number, hasTasks: boolean): st
 }
 
 export function AICoach({
+  apiKey,
   isTimerRunning,
   sessionsCompleted,
   hasTasks,
   onStartTimer,
   onStartBreak,
   onFocusTaskInput,
+  onOpenSettings,
 }: AICoachProps) {
   const [open, setOpen] = useState(false);
   const [hasNudge, setHasNudge] = useState(false);
@@ -67,14 +75,14 @@ export function AICoach({
   }, [updateActivity]);
 
   const checkNudge = useCallback(() => {
-    if (isTimerRunning || open) return;
+    if (isTimerRunning || open || !apiKey) return;
     const now = Date.now();
     if (now - lastPromptTime.current < 5 * 60 * 1000) return;
     if ((now - lastActivityTime.current) / 60000 >= 3) {
       setHasNudge(true);
       lastPromptTime.current = now;
     }
-  }, [isTimerRunning, open]);
+  }, [isTimerRunning, open, apiKey]);
 
   useEffect(() => {
     const t = setTimeout(checkNudge, 20000);
@@ -101,7 +109,7 @@ export function AICoach({
 
   const sendMessage = useCallback(async (text: string, extraAction?: () => void) => {
     const trimmed = text.trim();
-    if (!trimmed || streaming) return;
+    if (!trimmed || streaming || !apiKey) return;
 
     if (extraAction) extraAction();
 
@@ -114,18 +122,32 @@ export function AICoach({
     const abort = new AbortController();
     abortRef.current = abort;
 
+    const contextNote = `[Context: timer ${isTimerRunning ? "running" : "stopped"}, ${sessionsCompleted} sessions completed today, ${hasTasks ? "has tasks" : "no tasks yet"}]`;
+
     try {
-      const resp = await fetch(`${BASE}/api/coach/chat`, {
+      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
         signal: abort.signal,
         body: JSON.stringify({
-          messages: updatedHistory,
-          context: { isTimerRunning, sessionsCompleted, hasTasks },
+          model: "gpt-4o-mini",
+          stream: true,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: contextNote },
+            ...updatedHistory,
+          ],
         }),
       });
 
-      if (!resp.ok || !resp.body) throw new Error("API error");
+      if (!resp.ok) {
+        const err = await resp.json() as { error?: { message?: string } };
+        throw new Error(err.error?.message ?? `HTTP ${resp.status}`);
+      }
+      if (!resp.body) throw new Error("No response body");
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -140,28 +162,35 @@ export function AICoach({
         buffer = lines.pop() ?? "";
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
-          let data: { content?: string; done?: boolean; error?: string };
+          const raw = line.slice(6).trim();
+          if (raw === "[DONE]") continue;
           try {
-            data = JSON.parse(line.slice(6)) as typeof data;
+            const chunk = JSON.parse(raw) as { choices?: { delta?: { content?: string } }[] };
+            const content = chunk.choices?.[0]?.delta?.content;
+            if (content) {
+              full += content;
+              setMessages((prev) => {
+                const next = [...prev];
+                next[next.length - 1] = { role: "assistant", content: full };
+                return next;
+              });
+            }
           } catch {
-            continue; // malformed JSON chunk, skip
-          }
-          if (data.error) throw new Error(data.error);
-          if (data.content) {
-            full += data.content;
-            setMessages((prev) => {
-              const next = [...prev];
-              next[next.length - 1] = { role: "assistant", content: full };
-              return next;
-            });
+            continue;
           }
         }
       }
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
+        const msg = (err as Error).message ?? "Unknown error";
         setMessages((prev) => {
           const next = [...prev];
-          next[next.length - 1] = { role: "assistant", content: "Sorry, I couldn't connect right now. Check your API key in settings." };
+          next[next.length - 1] = {
+            role: "assistant",
+            content: msg.includes("401") || msg.includes("Incorrect API key")
+              ? "Invalid API key — check the key you entered in Configure."
+              : `Error: ${msg}`,
+          };
           return next;
         });
       }
@@ -170,7 +199,7 @@ export function AICoach({
       abortRef.current = null;
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [messages, streaming, isTimerRunning, sessionsCompleted, hasTasks]);
+  }, [messages, streaming, apiKey, isTimerRunning, sessionsCompleted, hasTasks]);
 
   const handleClose = () => {
     abortRef.current?.abort();
@@ -182,7 +211,7 @@ export function AICoach({
       label: "Start Focus",
       description: "Begin a Pomodoro session",
       icon: Play,
-      color: "#335C81",
+      color: "#8b5cf6",
       message: "I'm starting a focus session now.",
       onClick: onStartTimer,
     },
@@ -190,7 +219,7 @@ export function AICoach({
       label: "Take a Break",
       description: "Short 5-minute break",
       icon: Coffee,
-      color: "#77ACA2",
+      color: "#34d399",
       message: "Taking a short break.",
       onClick: onStartBreak,
     },
@@ -198,11 +227,13 @@ export function AICoach({
       label: "Add a Task",
       description: "Plan what to work on",
       icon: ListPlus,
-      color: "#9DBEBB",
+      color: "#5b8dee",
       message: "Help me think of what to add to my task list.",
       onClick: onFocusTaskInput,
     },
   ];
+
+  const hasKey = Boolean(apiKey);
 
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2.5">
@@ -227,11 +258,11 @@ export function AICoach({
               {/* Header */}
               <div
                 className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0"
-                style={{ background: "linear-gradient(135deg, #335C8108, #77ACA208)" }}
+                style={{ background: "linear-gradient(135deg, #8b5cf608, #5b8dee08)" }}
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                    style={{ background: "linear-gradient(135deg, #335C81, #4a7c9e)" }}>
+                    style={{ background: "linear-gradient(135deg, #6d28d9, #8b5cf6)" }}>
                     <Sparkles size={14} className="text-white" />
                   </div>
                   <div>
@@ -249,77 +280,110 @@ export function AICoach({
                 </button>
               </div>
 
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2.5 min-h-0">
-                {messages.map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div
-                      className={`max-w-[85%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${
-                        msg.role === "user"
-                          ? "text-white rounded-br-sm"
-                          : "bg-muted text-foreground rounded-bl-sm"
-                      }`}
-                      style={msg.role === "user" ? { background: "#335C81" } : {}}
-                    >
-                      {msg.content || (streaming && i === messages.length - 1 ? (
-                        <Loader2 size={12} className="animate-spin text-muted-foreground" />
-                      ) : "")}
-                    </div>
+              {/* No API key state */}
+              {!hasKey ? (
+                <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 gap-4 text-center">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                    style={{ background: "linear-gradient(135deg, #6d28d920, #8b5cf620)" }}>
+                    <KeyRound size={20} className="text-primary" />
                   </div>
-                ))}
-                <div ref={bottomRef} />
-              </div>
-
-              {/* Quick actions */}
-              {messages.length <= 1 && (
-                <div className="px-3 pb-2 flex flex-col gap-1 shrink-0">
-                  {QUICK_ACTIONS.map((action) => {
-                    const { icon: Icon } = action;
-                    return (
-                      <button
-                        key={action.label}
-                        onClick={() => sendMessage(action.message, action.onClick)}
-                        disabled={streaming}
-                        className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl border border-border bg-muted/30 hover:bg-muted/70 transition-all group text-left disabled:opacity-50"
-                      >
-                        <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ background: `${action.color}18`, color: action.color }}>
-                          <Icon size={12} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-foreground">{action.label}</p>
-                          <p className="text-[10px] text-muted-foreground">{action.description}</p>
-                        </div>
-                        <ChevronRight size={11} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Input */}
-              <div className="px-3 pb-3 pt-1 border-t border-border shrink-0">
-                <div className="flex gap-2 items-center bg-muted rounded-xl px-3 py-2">
-                  <input
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
-                    placeholder="Ask Coach anything..."
-                    disabled={streaming}
-                    className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
-                  />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Add your OpenAI key</p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      Coach uses GPT-4o mini via your own API key — your key, your data, your cost.
+                    </p>
+                  </div>
                   <button
-                    onClick={() => sendMessage(input)}
-                    disabled={streaming || !input.trim()}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg transition-all disabled:opacity-40"
-                    style={{ background: "#335C81", color: "#fff" }}
+                    onClick={() => { handleClose(); onOpenSettings(); }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all"
+                    style={{ background: "linear-gradient(135deg, #6d28d9, #8b5cf6)" }}
                   >
-                    {streaming ? <Loader2 size={11} className="animate-spin" /> : <Send size={11} />}
+                    Open Configure
                   </button>
+                  <a
+                    href="https://platform.openai.com/api-keys"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Get a key at platform.openai.com
+                  </a>
                 </div>
-                <p className="text-[9px] text-muted-foreground/50 text-center mt-1.5">Powered by GPT-4o mini</p>
-              </div>
+              ) : (
+                <>
+                  {/* Messages */}
+                  <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2.5 min-h-0">
+                    {messages.map((msg, i) => (
+                      <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                        <div
+                          className={`max-w-[85%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${
+                            msg.role === "user"
+                              ? "text-white rounded-br-sm"
+                              : "bg-muted text-foreground rounded-bl-sm"
+                          }`}
+                          style={msg.role === "user" ? { background: "linear-gradient(135deg, #6d28d9, #8b5cf6)" } : {}}
+                        >
+                          {msg.content || (streaming && i === messages.length - 1 ? (
+                            <Loader2 size={12} className="animate-spin text-muted-foreground" />
+                          ) : "")}
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={bottomRef} />
+                  </div>
+
+                  {/* Quick actions */}
+                  {messages.length <= 1 && (
+                    <div className="px-3 pb-2 flex flex-col gap-1 shrink-0">
+                      {QUICK_ACTIONS.map((action) => {
+                        const { icon: Icon } = action;
+                        return (
+                          <button
+                            key={action.label}
+                            onClick={() => sendMessage(action.message, action.onClick)}
+                            disabled={streaming}
+                            className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl border border-border bg-muted/30 hover:bg-muted/70 transition-all group text-left disabled:opacity-50"
+                          >
+                            <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                              style={{ background: `${action.color}18`, color: action.color }}>
+                              <Icon size={12} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-foreground">{action.label}</p>
+                              <p className="text-[10px] text-muted-foreground">{action.description}</p>
+                            </div>
+                            <ChevronRight size={11} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Input */}
+                  <div className="px-3 pb-3 pt-1 border-t border-border shrink-0">
+                    <div className="flex gap-2 items-center bg-muted rounded-xl px-3 py-2">
+                      <input
+                        ref={inputRef}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
+                        placeholder="Ask Coach anything..."
+                        disabled={streaming}
+                        className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
+                      />
+                      <button
+                        onClick={() => sendMessage(input)}
+                        disabled={streaming || !input.trim()}
+                        className="w-6 h-6 flex items-center justify-center rounded-lg transition-all disabled:opacity-40 text-white"
+                        style={{ background: "linear-gradient(135deg, #6d28d9, #8b5cf6)" }}
+                      >
+                        {streaming ? <Loader2 size={11} className="animate-spin" /> : <Send size={11} />}
+                      </button>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground/50 text-center mt-1.5">GPT-4o mini · your API key</p>
+                  </div>
+                </>
+              )}
             </motion.div>
           </>
         )}
@@ -338,14 +402,14 @@ export function AICoach({
             className="absolute inset-0 rounded-2xl"
             animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
-            style={{ background: "#77ACA2" }}
+            style={{ background: "#8b5cf6" }}
           />
         )}
         <div
           className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
           style={{
-            background: "linear-gradient(135deg, #335C81, #4a7c9e)",
-            boxShadow: "0 4px 16px rgba(51,92,129,0.35)",
+            background: "linear-gradient(135deg, #6d28d9, #8b5cf6)",
+            boxShadow: "0 4px 16px rgba(109,40,217,0.4)",
           }}
         >
           <Sparkles size={20} className="text-white" />
@@ -353,7 +417,7 @@ export function AICoach({
         <span
           className="text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full transition-all"
           style={{
-            background: open ? "#335C81" : "hsl(var(--muted))",
+            background: open ? "#6d28d9" : "hsl(var(--muted))",
             color: open ? "#fff" : "hsl(var(--muted-foreground))",
           }}
         >

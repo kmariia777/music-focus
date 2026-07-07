@@ -3,21 +3,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export const STREAMS = [
   {
     id: "frisky" as const,
-    label: "Frisky",
+    label: "Focus",
     description: "Progressive / Uplifting",
     url: "https://stream.frisky.friskyradio.com/frisky_mp3_high",
     color: "#8b5cf6",
   },
   {
     id: "deep" as const,
-    label: "Deep",
+    label: "Immerse",
     description: "Underground / Melodic",
     url: "https://deep.friskyradio.com/friskychill_mp3_high",
     color: "#5b8dee",
   },
   {
     id: "chill" as const,
-    label: "Chillout",
+    label: "Drift",
     description: "Ambient / Downtempo",
     url: "https://chill.friskyradio.com/friskychill_mp3_high",
     color: "#34d399",

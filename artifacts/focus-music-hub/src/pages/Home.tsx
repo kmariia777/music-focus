@@ -10,7 +10,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useTimer } from "@/hooks/useTimer";
 import type { TimerStats } from "@/hooks/useTimer";
 import { useAudio } from "@/hooks/useAudio";
-import { SlidersHorizontal, Timer } from "lucide-react";
+import { SlidersHorizontal, Brain } from "lucide-react";
 
 const DEFAULT_SETTINGS: AppSettings = {
   workDuration: 25,
@@ -94,7 +94,7 @@ export default function Home() {
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center shadow-sm"
               style={{ background: "linear-gradient(135deg, #6d28d9, #8b5cf6)" }}>
-              <Timer size={13} className="text-white" />
+              <Brain size={14} className="text-white" />
             </div>
             <span className="font-semibold text-foreground text-sm tracking-tight">Focus Music Hub</span>
           </div>

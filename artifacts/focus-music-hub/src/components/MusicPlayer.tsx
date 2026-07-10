@@ -45,7 +45,7 @@ export function MusicPlayer({
         <h2 className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground">Streams</h2>
         <button
           onClick={onMuteToggle}
-          className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:bg-white/10 text-muted-foreground hover:text-foreground"
+          className="hidden lg:flex w-7 h-7 rounded-lg items-center justify-center transition-all hover:bg-white/10 text-muted-foreground hover:text-foreground"
         >
           {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
         </button>
@@ -138,8 +138,8 @@ export function MusicPlayer({
         )}
       </AnimatePresence>
 
-      {/* Volume */}
-      <div className="px-4 pb-4">
+      {/* Volume — desktop only; mobile devices control volume with hardware buttons */}
+      <div className="hidden lg:block px-4 pb-4">
         <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: "rgba(255,255,255,0.05)" }}>
           <button onClick={onMuteToggle} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
             {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}

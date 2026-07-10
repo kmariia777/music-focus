@@ -6,17 +6,34 @@
     </linearGradient>
   </defs>
   <rect width="180" height="180" rx="40" fill="url(#bg)"/>
-  <!-- timer stem top-center -->
-  <rect x="82" y="30" width="16" height="9" rx="4.5" fill="white"/>
-  <!-- timer crown tabs at 10 and 2 -->
-  <rect x="55" y="43" width="10" height="9" rx="3" transform="rotate(-35 60 47)" fill="white"/>
-  <rect x="115" y="43" width="10" height="9" rx="3" transform="rotate(35 120 47)" fill="white"/>
-  <!-- clock face -->
-  <circle cx="90" cy="106" r="52" stroke="white" stroke-width="10" fill="none"/>
-  <!-- minute hand (12 o'clock) -->
-  <line x1="90" y1="106" x2="90" y2="74" stroke="white" stroke-width="9" stroke-linecap="round"/>
-  <!-- hour hand (~10 o'clock) -->
-  <line x1="90" y1="106" x2="68" y2="88" stroke="white" stroke-width="9" stroke-linecap="round"/>
-  <!-- center dot -->
-  <circle cx="90" cy="106" r="7" fill="white"/>
+
+  <!-- brain lobes (cluster of overlapping circles forming a rounded brain silhouette) -->
+  <g fill="white">
+    <circle cx="58" cy="76" r="21"/>
+    <circle cx="76" cy="58" r="23"/>
+    <circle cx="102" cy="56" r="24"/>
+    <circle cx="124" cy="66" r="21"/>
+    <circle cx="130" cy="88" r="19"/>
+    <circle cx="116" cy="102" r="18"/>
+    <circle cx="92" cy="107" r="21"/>
+    <circle cx="68" cy="102" r="19"/>
+    <circle cx="53" cy="90" r="15"/>
+  </g>
+
+  <!-- brain stem -->
+  <path d="M80 118 L84 138 Q90 146 96 138 L100 118 Z" fill="white"/>
+
+  <!-- hemisphere divide -->
+  <path d="M90 54 Q84 66 90 78 Q96 90 90 102 Q86 110 90 116" stroke="#5b21b6" stroke-width="5" stroke-linecap="round" fill="none"/>
+
+  <!-- fold texture -->
+  <path d="M62 68 Q70 72 66 82" stroke="#5b21b6" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M108 64 Q116 68 112 78" stroke="#5b21b6" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M100 92 Q108 96 104 106" stroke="#5b21b6" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+  <!-- clock badge -->
+  <circle cx="136" cy="132" r="34" fill="white" stroke="#6d28d9" stroke-width="6"/>
+  <line x1="136" y1="132" x2="136" y2="112" stroke="#6d28d9" stroke-width="6" stroke-linecap="round"/>
+  <line x1="136" y1="132" x2="150" y2="140" stroke="#6d28d9" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="136" cy="132" r="5" fill="#6d28d9"/>
 </svg>

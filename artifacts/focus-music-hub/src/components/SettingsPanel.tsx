@@ -1,4 +1,4 @@
-import { X, Timer, Coffee, Moon, Eye, EyeOff } from "lucide-react";
+import { X, Timer, Coffee, Moon, Eye, EyeOff, Send, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -78,10 +78,10 @@ export function SettingsPanel({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 48 }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="fixed top-0 right-0 h-full w-[340px] bg-card border-l border-card-border shadow-2xl z-50 overflow-y-auto flex flex-col"
+            className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-card border-l border-card-border shadow-2xl z-50 overflow-y-auto flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+            <div className="flex items-center justify-between px-5 sm:px-6 py-5 border-b border-border sticky top-0 bg-card z-10">
               <div>
                 <h2 className="font-semibold text-foreground text-base">Configuration</h2>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Timer, audio &amp; session settings</p>
@@ -95,7 +95,7 @@ export function SettingsPanel({
               </button>
             </div>
 
-            <div className="flex-1 px-6 py-6 flex flex-col gap-8">
+            <div className="flex-1 px-5 sm:px-6 py-6 flex flex-col gap-8 text-base sm:text-sm">
 
               {/* This Week */}
               <section>
@@ -314,6 +314,12 @@ export function SettingsPanel({
                   </button>
                 </div>
               </section>
+
+              {/* Feedback */}
+              <section>
+                <SectionTitle>Feedback</SectionTitle>
+                <FeedbackForm />
+              </section>
             </div>
           </motion.div>
         </>
@@ -361,6 +367,49 @@ function ToggleSetting({ label, description, checked, onChange, testId }: {
         {description && <p className="text-[11px] text-muted-foreground mt-0.5">{description}</p>}
       </div>
       <Switch data-testid={testId} checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+const FEEDBACK_EMAIL = "info@coregridit.com";
+
+function FeedbackForm() {
+  const [text, setText] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const send = () => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const subject = encodeURIComponent("Focus Music Hub Feedback");
+    const body = encodeURIComponent(trimmed);
+    window.location.href = `mailto:${FEEDBACK_EMAIL}?subject=${subject}&body=${body}`;
+    setSent(true);
+    setText("");
+    setTimeout(() => setSent(false), 3000);
+  };
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Found a bug or have an idea? Send it straight to the developer.
+      </p>
+      <textarea
+        data-testid="input-feedback"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Tell us what's on your mind..."
+        rows={3}
+        className="w-full rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-sm sm:text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 resize-none"
+      />
+      <button
+        data-testid="button-send-feedback"
+        onClick={send}
+        disabled={!text.trim()}
+        className="w-full py-2.5 text-sm rounded-xl font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        style={{ background: sent ? "#34d399" : "linear-gradient(135deg, #6d28d9, #8b5cf6)", color: "#fff" }}
+      >
+        {sent ? <><Check size={14} /> Opening your mail app…</> : <><Send size={13} /> Send Feedback</>}
+      </button>
     </div>
   );
 }

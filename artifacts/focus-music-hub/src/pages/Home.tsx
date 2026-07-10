@@ -187,7 +187,6 @@ export default function Home() {
               onPrevStream={audio.playPrev}
             />
           </div>
-          <TaskManager tasks={tasks} onTasksChange={setTasks} />
           <MusicPlayer
             streams={audio.streams}
             activeId={audio.activeId}
@@ -199,6 +198,7 @@ export default function Home() {
             onVolumeChange={audio.setVolume}
             onMuteToggle={() => audio.setIsMuted((m) => !m)}
           />
+          <TaskManager tasks={tasks} onTasksChange={setTasks} />
         </div>
       </main>
 

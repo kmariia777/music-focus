@@ -46,8 +46,26 @@ export function useAudio({ isTimerRunning, autoStartWithTimer }: UseAudioOptions
   const lastIdxRef = useRef(0);
   const volumeRef = useRef(volume);
   const isMutedRef = useRef(isMuted);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
   volumeRef.current = volume;
   isMutedRef.current = isMuted;
+
+  // Web Audio API gain control — needed because iOS Safari ignores
+  // `audio.volume` on <audio> elements entirely. Routing through a
+  // GainNode lets the volume slider actually work on mobile.
+  const getAudioContext = useCallback(() => {
+    const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AC) return null;
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AC();
+    }
+    if (audioCtxRef.current.state === "suspended") {
+      audioCtxRef.current.resume().catch(() => {});
+    }
+    return audioCtxRef.current;
+  }, []);
 
   const updateStatus = useCallback((s: StreamStatus) => {
     statusRef.current = s;
@@ -55,6 +73,14 @@ export function useAudio({ isTimerRunning, autoStartWithTimer }: UseAudioOptions
   }, []);
 
   const rawStop = useCallback(() => {
+    if (sourceNodeRef.current) {
+      try { sourceNodeRef.current.disconnect(); } catch { /* noop */ }
+      sourceNodeRef.current = null;
+    }
+    if (gainNodeRef.current) {
+      try { gainNodeRef.current.disconnect(); } catch { /* noop */ }
+      gainNodeRef.current = null;
+    }
     if (audioRef.current) {
       const a = audioRef.current;
       audioRef.current = null;
@@ -99,20 +125,42 @@ export function useAudio({ isTimerRunning, autoStartWithTimer }: UseAudioOptions
       }
     });
 
-    audio.volume = isMutedRef.current ? 0 : volumeRef.current / 100;
+    audio.volume = 1;
     audio.src = stream.url;
+
+    try {
+      const ctx = getAudioContext();
+      if (ctx) {
+        const source = ctx.createMediaElementSource(audio);
+        const gain = ctx.createGain();
+        gain.gain.value = isMutedRef.current ? 0 : volumeRef.current / 100;
+        source.connect(gain).connect(ctx.destination);
+        sourceNodeRef.current = source;
+        gainNodeRef.current = gain;
+      } else {
+        audio.volume = isMutedRef.current ? 0 : volumeRef.current / 100;
+      }
+    } catch {
+      // Web Audio graph unavailable (e.g. unsupported browser) — fall back to element volume
+      audio.volume = isMutedRef.current ? 0 : volumeRef.current / 100;
+    }
+
     audio.play().catch((err: Error) => {
       if (err.name !== "AbortError" && audioRef.current === audio) {
         updateStatus("error");
         setErrorMsg("Could not start stream");
       }
     });
-  }, [rawStop, updateStatus]);
+  }, [rawStop, updateStatus, getAudioContext]);
 
-  // Sync volume/mute to running audio
+  // Sync volume/mute to running audio — via GainNode when available (required
+  // for iOS Safari, which silently ignores audio.volume), else the element itself.
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume / 100;
+    const level = isMuted ? 0 : volume / 100;
+    if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = level;
+    } else if (audioRef.current) {
+      audioRef.current.volume = level;
     }
   }, [volume, isMuted]);
 

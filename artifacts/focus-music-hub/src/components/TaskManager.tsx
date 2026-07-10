@@ -194,10 +194,31 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
     setEditText("");
   }, [editText, tasks, onTasksChange]);
 
-  const startVoice = useCallback(() => {
+  const startVoice = useCallback(async () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { setVoiceError("Voice input not supported in this browser."); return; }
+    if (!SR) {
+      setVoiceError("Voice input isn't supported in this browser. Try Chrome, or type your task.");
+      return;
+    }
+    if (!window.isSecureContext) {
+      setVoiceError("Voice input needs a secure (https) connection.");
+      return;
+    }
     setVoiceError(null);
+
+    // Mobile browsers (esp. Chrome on Android) won't reliably surface the
+    // mic permission prompt from SpeechRecognition alone — request it
+    // explicitly first so the user gets a clear prompt/error.
+    if (navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((t) => t.stop());
+      } catch {
+        setVoiceError("Microphone access denied. Allow mic permission for this site in your browser settings.");
+        return;
+      }
+    }
+
     const recognition = new SR();
     recognition.lang = "en-US";
     recognition.interimResults = false;
@@ -210,10 +231,16 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
       setIsListening(false);
       setTimeout(() => addTask(t), 800);
     };
-    recognition.onerror = () => {
+    recognition.onerror = (event: Event & { error?: string }) => {
       setIsListening(false);
       setInput("");
-      setVoiceError("Voice input failed. Try again.");
+      if (event?.error === "not-allowed" || event?.error === "service-not-allowed") {
+        setVoiceError("Microphone access denied. Allow mic permission for this site in your browser settings.");
+      } else if (event?.error === "no-speech") {
+        setVoiceError("Didn't catch that — try again.");
+      } else {
+        setVoiceError("Voice input failed. Try again.");
+      }
     };
     recognition.onend = () => setIsListening(false);
     recognition.start();

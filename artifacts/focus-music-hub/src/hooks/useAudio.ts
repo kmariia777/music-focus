@@ -52,10 +52,15 @@ export function useAudio({ isTimerRunning, autoStartWithTimer }: UseAudioOptions
   volumeRef.current = volume;
   isMutedRef.current = isMuted;
 
-  // Web Audio API gain control — needed because iOS Safari ignores
-  // `audio.volume` on <audio> elements entirely. Routing through a
-  // GainNode lets the volume slider actually work on mobile.
+  // Web Audio API gain control — needed only because iOS Safari ignores
+  // `audio.volume` on <audio> elements entirely. Everywhere else, plain
+  // audio.volume is simpler and more reliable, so we scope this to iOS.
+  const isIOS = useRef(
+    typeof navigator !== "undefined" && /iP(hone|od|ad)/.test(navigator.userAgent)
+  );
+
   const getAudioContext = useCallback(() => {
+    if (!isIOS.current) return null;
     const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AC) return null;
     if (!audioCtxRef.current) {

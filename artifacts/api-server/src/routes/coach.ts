@@ -3,7 +3,13 @@ import OpenAI from "openai";
 
 const router = Router();
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Lazily constructed: the server must boot even when OPENAI_API_KEY is unset.
+// The handler below returns a graceful error in that case.
+function getOpenAI(): OpenAI | null {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+  return new OpenAI({ apiKey });
+}
 
 const SYSTEM_PROMPT = `You are Coach, a concise ADHD-friendly productivity assistant inside Focus Music Hub.
 Your role: help users stay focused, plan tasks, manage energy, and build Pomodoro habits.
@@ -13,6 +19,10 @@ Context you receive: timer running state, sessions completed today, whether they
 
 router.post("/coach/chat", async (req, res) => {
   try {
+    const openai = getOpenAI();
+    if (!openai) {
+      throw new Error("AI coach is not configured (OPENAI_API_KEY is not set).");
+    }
     const { messages, context } = req.body as {
       messages: { role: "user" | "assistant"; content: string }[];
       context?: { isTimerRunning?: boolean; sessionsCompleted?: number; hasTasks?: boolean };

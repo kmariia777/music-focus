@@ -313,6 +313,29 @@ export function SettingsPanel({
                 <SectionTitle>Feedback</SectionTitle>
                 <FeedbackForm />
               </section>
+
+              {/* Legal */}
+              <section>
+                <SectionTitle>Legal</SectionTitle>
+                <div className="flex items-center gap-4 text-xs">
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Privacy Policy
+                  </a>
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Terms of Service
+                  </a>
+                </div>
+              </section>
             </div>
           </motion.div>
         </>

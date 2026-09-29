@@ -265,11 +265,11 @@ export function SettingsPanel({
                     <li>EDM Detection Mode — Focus</li>
                     <li>Digital Lemonade — Focus</li>
                     <li>Future Cha Cha — Focus</li>
-                    <li>In a Heartbeat — Immerse</li>
-                    <li>Laser Groove — Immerse</li>
-                    <li>Shiny Tech — Immerse</li>
-                    <li>Shenzhen Nightlife — Immerse</li>
-                    <li>Special Spotlight — Immerse</li>
+                    <li>Crypto — Immerse</li>
+                    <li>Deep Haze — Immerse</li>
+                    <li>Echoes of Time — Immerse</li>
+                    <li>Mirage — Immerse</li>
+                    <li>Sovereign — Immerse</li>
                     <li>Tranquility Base — Drift</li>
                     <li>Chill Wave — Drift</li>
                     <li>Fluidscape — Drift</li>

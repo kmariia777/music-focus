@@ -41,11 +41,11 @@ export const STATIONS: readonly Station[] = [
     description: "Underground / Melodic",
     color: "#5b8dee",
     tracks: [
-      track("In a Heartbeat", "immerse/In a Heartbeat.mp3"),
-      track("Laser Groove", "immerse/Laser Groove.mp3"),
-      track("Shiny Tech", "immerse/Shiny Tech.mp3"),
-      track("Shenzhen Nightlife", "immerse/Shenzhen Nightlife.mp3"),
-      track("Special Spotlight", "immerse/Special Spotlight.mp3"),
+      track("Crypto", "immerse/Crypto.mp3"),
+      track("Deep Haze", "immerse/Deep Haze.mp3"),
+      track("Echoes of Time", "immerse/Echoes of Time.mp3"),
+      track("Mirage", "immerse/Mirage.mp3"),
+      track("Sovereign", "immerse/Sovereign.mp3"),
     ],
   },
   {

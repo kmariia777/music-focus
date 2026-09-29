@@ -25,11 +25,11 @@ licensed under **Creative Commons Attribution 4.0 International (CC BY 4.0)**
 ### Immerse — Underground / Melodic (`public/audio/immerse/`)
 | Title | File |
 |---|---|
-| In a Heartbeat | immerse/In a Heartbeat.mp3 |
-| Laser Groove | immerse/Laser Groove.mp3 |
-| Shiny Tech | immerse/Shiny Tech.mp3 |
-| Shenzhen Nightlife | immerse/Shenzhen Nightlife.mp3 |
-| Special Spotlight | immerse/Special Spotlight.mp3 |
+| Crypto | immerse/Crypto.mp3 |
+| Deep Haze | immerse/Deep Haze.mp3 |
+| Echoes of Time | immerse/Echoes of Time.mp3 |
+| Mirage | immerse/Mirage.mp3 |
+| Sovereign | immerse/Sovereign.mp3 |
 
 ### Drift — Ambient / Downtempo (`public/audio/drift/`)
 | Title | File |

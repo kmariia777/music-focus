@@ -1,4 +1,4 @@
-import { X, Timer, Coffee, Moon, Eye, EyeOff, Send, Check } from "lucide-react";
+import { X, Timer, Coffee, Moon, Send, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -14,8 +14,6 @@ export interface AppSettings {
   autoStartMusic: boolean;
   soundNotifications: boolean;
   darkMode: boolean;
-  openaiApiKey: string;
-  showCoach: boolean;
 }
 
 interface SettingsPanelProps {
@@ -54,7 +52,6 @@ export function SettingsPanel({
   onClearTasks,
 }: SettingsPanelProps) {
   const update = (patch: Partial<AppSettings>) => onSettingsChange({ ...settings, ...patch });
-  const [showKey, setShowKey] = useState(false);
 
   const PRESETS = [
     { label: "25 / 5", work: 25, short: 5, long: 15 },
@@ -290,58 +287,6 @@ export function SettingsPanel({
                   testId="toggle-dark-mode"
                 />
               </section>
-
-              {/* AI Coach */}
-              <section>
-                <SectionTitle>AI Coach</SectionTitle>
-                <div className="flex flex-col gap-3">
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Uses GPT-4o mini via your OpenAI key. Stored locally only.
-                  </p>
-                  <div className="relative flex items-center">
-                    <input
-                      data-testid="input-openai-key"
-                      type={showKey ? "text" : "password"}
-                      value={settings.openaiApiKey}
-                      onChange={(e) => update({ openaiApiKey: e.target.value })}
-                      placeholder="sk-..."
-                      className="w-full rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 pr-8 font-mono"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowKey((v) => !v)}
-                      className="absolute right-2.5 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showKey ? <EyeOff size={13} /> : <Eye size={13} />}
-                    </button>
-                  </div>
-                  {settings.openaiApiKey ? (
-                    <>
-                      <p className="text-[10px] text-emerald-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-                        Key saved
-                      </p>
-                      <ToggleSetting
-                        label="Show Coach button"
-                        description="Display the Coach FAB on the main screen"
-                        checked={settings.showCoach}
-                        onChange={(v) => update({ showCoach: v })}
-                        testId="toggle-show-coach"
-                      />
-                    </>
-                  ) : (
-                    <a
-                      href="https://platform.openai.com/api-keys"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Get a key at platform.openai.com →
-                    </a>
-                  )}
-                </div>
-              </section>
-
               {/* Data */}
               <section>
                 <SectionTitle>Data</SectionTitle>

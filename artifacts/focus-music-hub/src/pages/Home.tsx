@@ -3,7 +3,6 @@ import { PomodoroTimer } from "@/components/PomodoroTimer";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { TaskManager } from "@/components/TaskManager";
 import type { Task } from "@/components/TaskManager";
-import { AICoach } from "@/components/AICoach";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import type { AppSettings } from "@/components/SettingsPanel";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -20,8 +19,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoStartMusic: true,
   soundNotifications: true,
   darkMode: true,
-  openaiApiKey: "",
-  showCoach: false,
 };
 
 const DEFAULT_STATS: TimerStats = {
@@ -205,19 +202,6 @@ export default function Home() {
           <TaskManager tasks={tasks} onTasksChange={setTasks} />
         </div>
       </main>
-
-      {settings.openaiApiKey && settings.showCoach && (
-        <AICoach
-          apiKey={settings.openaiApiKey}
-          isTimerRunning={timer.isRunning}
-          sessionsCompleted={stats.sessionsCompleted}
-          hasTasks={tasks.length > 0}
-          onStartTimer={timer.start}
-          onStartBreak={() => { timer.setMode("short-break"); timer.start(); }}
-          onFocusTaskInput={() => document.querySelector<HTMLInputElement>('[data-testid="input-task"]')?.focus()}
-          onOpenSettings={() => setSettingsOpen(true)}
-        />
-      )}
 
       <SettingsPanel
         open={settingsOpen}

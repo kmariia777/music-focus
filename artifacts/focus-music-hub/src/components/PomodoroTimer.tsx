@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { Play, Pause, RotateCcw, SkipForward, SkipBack, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { TimerMode, TimerStats } from "@/hooks/useTimer";
-import type { Stream, StreamStatus } from "@/hooks/useAudio";
+import type { Station, AudioStatus } from "@/hooks/useAudio";
 
 interface PomodoroTimerProps {
   mode: TimerMode;
@@ -18,11 +18,12 @@ interface PomodoroTimerProps {
   onSkip: () => void;
   onOpenSettings: () => void;
   // Audio mini-player
-  activeStream: Stream | null;
-  audioStatus: StreamStatus;
+  activeStation: Station | null;
+  audioStatus: AudioStatus;
+  nowPlaying: string | null;
   onTogglePlay: () => void;
-  onNextStream: () => void;
-  onPrevStream: () => void;
+  onNextStation: () => void;
+  onPrevStation: () => void;
 }
 
 const SIZE = 260;
@@ -47,7 +48,7 @@ const RING_GRADIENT = "url(#timerGradient)";
 export function PomodoroTimer({
   mode, isRunning, displayTime, progress, sessionCount, sessionsBeforeLongBreak,
   stats, onStart, onPause, onReset, onSkip, onOpenSettings,
-  activeStream, audioStatus, onTogglePlay, onNextStream, onPrevStream,
+  activeStation, audioStatus, nowPlaying, onTogglePlay, onNextStation, onPrevStation,
 }: PomodoroTimerProps) {
   const handleToggle = useCallback(() => {
     if (isRunning) onPause(); else onStart();
@@ -248,18 +249,18 @@ export function PomodoroTimer({
       {/* Mini Music Player */}
       <div className="w-full mt-4 rounded-2xl p-3 flex items-center gap-3"
         style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" }}>
-        {/* Stream icon */}
+        {/* Station icon */}
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden"
-          style={{ background: activeStream ? `${activeStream.color}28` : "rgba(255,255,255,0.07)" }}
+          style={{ background: activeStation ? `${activeStation.color}28` : "rgba(255,255,255,0.07)" }}
         >
-          {(audioStatus === "playing") && activeStream && (
+          {(audioStatus === "playing") && activeStation && (
             <div className="flex items-end gap-[2px] h-4">
               {[0, 1, 2, 3].map((i) => (
                 <div key={i} className="w-[3px] rounded-full"
                   style={{
                     height: "100%",
-                    background: activeStream.color,
+                    background: activeStation.color,
                     animation: `eq-bar ${0.45 + i * 0.1}s ease-in-out infinite alternate`,
                     animationDelay: `${i * 0.07}s`,
                   }}
@@ -268,7 +269,7 @@ export function PomodoroTimer({
             </div>
           )}
           {audioStatus === "loading" && (
-            <Loader2 size={16} className="animate-spin" style={{ color: activeStream?.color ?? "#8b5cf6" }} />
+            <Loader2 size={16} className="animate-spin" style={{ color: activeStation?.color ?? "#8b5cf6" }} />
           )}
           {(audioStatus === "idle" || audioStatus === "error") && (
             <div className="w-4 h-4 rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
@@ -278,17 +279,19 @@ export function PomodoroTimer({
         {/* Track info */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground leading-none truncate">
-            {activeStream?.label ?? "No stream selected"}
+            {activeStation?.label ?? "No station selected"}
           </p>
           <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-            {activeStream?.description ?? "Tap a stream to play"}
+            {audioStatus === "playing" && nowPlaying
+              ? `♪ ${nowPlaying}`
+              : (activeStation?.description ?? "Tap a station to play")}
           </p>
         </div>
 
         {/* Controls */}
         <div className="flex items-center gap-1 shrink-0">
           <button
-            onClick={onPrevStream}
+            onClick={onPrevStation}
             className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-white/10"
           >
             <SkipBack size={14} className="text-muted-foreground" />
@@ -297,8 +300,8 @@ export function PomodoroTimer({
             onClick={onTogglePlay}
             className="w-9 h-9 rounded-full flex items-center justify-center transition-all"
             style={{
-              background: activeStream
-                ? `linear-gradient(135deg, ${activeStream.color}cc, ${activeStream.color})`
+              background: activeStation
+                ? `linear-gradient(135deg, ${activeStation.color}cc, ${activeStation.color})`
                 : "rgba(139,92,246,0.7)",
             }}
           >
@@ -310,7 +313,7 @@ export function PomodoroTimer({
             }
           </button>
           <button
-            onClick={onNextStream}
+            onClick={onNextStation}
             className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-white/10"
           >
             <SkipForward size={14} className="text-muted-foreground" />

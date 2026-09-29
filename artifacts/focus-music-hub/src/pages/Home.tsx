@@ -135,26 +135,28 @@ export default function Home() {
                 onReset={timer.reset}
                 onSkip={timer.skip}
                 onOpenSettings={() => setSettingsOpen(true)}
-                activeStream={audio.activeStream}
+                activeStation={audio.activeStation}
                 audioStatus={audio.status}
+                nowPlaying={audio.nowPlaying}
                 onTogglePlay={audio.togglePlayPause}
-                onNextStream={audio.playNext}
-                onPrevStream={audio.playPrev}
+                onNextStation={audio.playNextStation}
+                onPrevStation={audio.playPrevStation}
               />
             </div>
             <TaskManager tasks={tasks} onTasksChange={setTasks} />
           </div>
 
-          {/* Right — Stream selector */}
+          {/* Right — Station selector */}
           <div className="flex flex-col gap-4">
             <MusicPlayer
-              streams={audio.streams}
+              stations={audio.stations}
               activeId={audio.activeId}
               status={audio.status}
+              nowPlaying={audio.nowPlaying}
               errorMsg={audio.errorMsg}
               volume={audio.volume}
               isMuted={audio.isMuted}
-              onStreamClick={audio.handleStreamClick}
+              onStationClick={audio.handleStationClick}
               onVolumeChange={audio.setVolume}
               onMuteToggle={() => audio.setIsMuted((m) => !m)}
             />
@@ -180,21 +182,23 @@ export default function Home() {
               onReset={timer.reset}
               onSkip={timer.skip}
               onOpenSettings={() => setSettingsOpen(true)}
-              activeStream={audio.activeStream}
+              activeStation={audio.activeStation}
               audioStatus={audio.status}
+                nowPlaying={audio.nowPlaying}
               onTogglePlay={audio.togglePlayPause}
-              onNextStream={audio.playNext}
-              onPrevStream={audio.playPrev}
+              onNextStation={audio.playNextStation}
+              onPrevStation={audio.playPrevStation}
             />
           </div>
           <MusicPlayer
-            streams={audio.streams}
+            stations={audio.stations}
             activeId={audio.activeId}
             status={audio.status}
+              nowPlaying={audio.nowPlaying}
             errorMsg={audio.errorMsg}
             volume={audio.volume}
             isMuted={audio.isMuted}
-            onStreamClick={audio.handleStreamClick}
+            onStationClick={audio.handleStationClick}
             onVolumeChange={audio.setVolume}
             onMuteToggle={() => audio.setIsMuted((m) => !m)}
           />

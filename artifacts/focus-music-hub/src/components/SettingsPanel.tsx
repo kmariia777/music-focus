@@ -216,7 +216,7 @@ export function SettingsPanel({
                 <div className="flex flex-col gap-3">
                   <ToggleSetting
                     label="Auto-start music with timer"
-                    description="Stream begins when you start a session"
+                    description="Music begins when you start a session"
                     checked={settings.autoStartMusic}
                     onChange={(v) => update({ autoStartMusic: v })}
                     testId="toggle-auto-music"
@@ -231,10 +231,57 @@ export function SettingsPanel({
                 </div>
               </section>
 
+              {/* Music credits */}
+              <section>
+                <SectionTitle>Music Credits</SectionTitle>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  All station music by{" "}
+                  <a
+                    href="https://incompetech.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    Kevin MacLeod (incompetech.com)
+                  </a>
+                  , licensed under{" "}
+                  <a
+                    href="https://creativecommons.org/licenses/by/4.0/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    Creative Commons Attribution 4.0
+                  </a>
+                  . Tracks are re-encoded to 128kbps for streaming.
+                </p>
+                <details className="mt-2 text-xs text-muted-foreground">
+                  <summary className="cursor-pointer hover:text-foreground select-none">
+                    Full track list
+                  </summary>
+                  <ul className="mt-2 flex flex-col gap-1 list-disc list-inside">
+                    <li>Deliberate Thought — Focus</li>
+                    <li>Blippy Trance — Focus</li>
+                    <li>EDM Detection Mode — Focus</li>
+                    <li>Digital Lemonade — Focus</li>
+                    <li>Future Cha Cha — Focus</li>
+                    <li>In a Heartbeat — Immerse</li>
+                    <li>Laser Groove — Immerse</li>
+                    <li>Shiny Tech — Immerse</li>
+                    <li>Shenzhen Nightlife — Immerse</li>
+                    <li>Special Spotlight — Immerse</li>
+                    <li>Tranquility Base — Drift</li>
+                    <li>Chill Wave — Drift</li>
+                    <li>Fluidscape — Drift</li>
+                    <li>Lightless Dawn — Drift</li>
+                    <li>Silver Blue Light — Drift</li>
+                  </ul>
+                </details>
+              </section>
+
               {/* Appearance */}
               <section>
-                <SectionTitle>Appearance</SectionTitle>
-                <ToggleSetting
+                <SectionTitle>Appearance</SectionTitle>                <ToggleSetting
                   label="Dark mode"
                   description="Easier on the eyes at night"
                   checked={settings.darkMode}

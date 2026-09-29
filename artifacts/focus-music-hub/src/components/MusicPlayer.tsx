@@ -1,7 +1,7 @@
-import { Radio, Wind, Loader2, AlertCircle, Volume2, VolumeX, Pause, Play } from "lucide-react";
+import { Radio, Wind, Loader2, AlertCircle, Volume2, VolumeX, Pause, Play, Music2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Stream, StreamId, StreamStatus } from "@/hooks/useAudio";
+import type { Station, StationId, AudioStatus } from "@/hooks/useAudio";
 
 function LayersIcon({ size = 16 }: { size?: number }) {
   return (
@@ -13,27 +13,28 @@ function LayersIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-const STREAM_ICONS: Record<StreamId, React.ComponentType<{ size?: number; className?: string }>> = {
-  frisky: Radio,
-  deep: LayersIcon as React.ComponentType<{ size?: number; className?: string }>,
-  chill: Wind,
+const STATION_ICONS: Record<StationId, React.ComponentType<{ size?: number; className?: string }>> = {
+  focus: Radio,
+  immerse: LayersIcon as React.ComponentType<{ size?: number; className?: string }>,
+  drift: Wind,
 };
 
 interface MusicPlayerProps {
-  streams: readonly Stream[];
-  activeId: StreamId | null;
-  status: StreamStatus;
+  stations: readonly Station[];
+  activeId: StationId | null;
+  status: AudioStatus;
+  nowPlaying: string | null;
   errorMsg: string | null;
   volume: number;
   isMuted: boolean;
-  onStreamClick: (idx: number) => void;
+  onStationClick: (idx: number) => void;
   onVolumeChange: (v: number) => void;
   onMuteToggle: () => void;
 }
 
 export function MusicPlayer({
-  streams, activeId, status, errorMsg, volume, isMuted,
-  onStreamClick, onVolumeChange, onMuteToggle,
+  stations, activeId, status, nowPlaying, errorMsg, volume, isMuted,
+  onStationClick, onVolumeChange, onMuteToggle,
 }: MusicPlayerProps) {
   return (
     <div className="rounded-2xl overflow-hidden" style={{
@@ -42,7 +43,7 @@ export function MusicPlayer({
     }}>
       {/* Header */}
       <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-        <h2 className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground">Streams</h2>
+        <h2 className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground">Stations</h2>
         <button
           onClick={onMuteToggle}
           className="hidden lg:flex w-7 h-7 rounded-lg items-center justify-center transition-all hover:bg-white/10 text-muted-foreground hover:text-foreground"
@@ -51,26 +52,26 @@ export function MusicPlayer({
         </button>
       </div>
 
-      {/* Stream list */}
+      {/* Station list */}
       <div className="px-3 pb-3 flex flex-col gap-2">
-        {streams.map((stream, idx) => {
-          const isActive = activeId === stream.id;
+        {stations.map((station, idx) => {
+          const isActive = activeId === station.id;
           const isPlaying = isActive && status === "playing";
           const isLoading = isActive && status === "loading";
-          const Icon = STREAM_ICONS[stream.id] ?? Radio;
+          const Icon = STATION_ICONS[station.id] ?? Radio;
 
           return (
             <motion.button
-              key={stream.id}
-              data-testid={`button-stream-${stream.id}`}
-              onClick={() => onStreamClick(idx)}
+              key={station.id}
+              data-testid={`button-station-${station.id}`}
+              onClick={() => onStationClick(idx)}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
               className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all"
               style={isPlaying || isLoading
                 ? {
-                    background: `linear-gradient(135deg, ${stream.color}18, ${stream.color}08)`,
-                    border: `1px solid ${stream.color}40`,
+                    background: `linear-gradient(135deg, ${station.color}18, ${station.color}08)`,
+                    border: `1px solid ${station.color}40`,
                   }
                 : {
                     background: "rgba(255,255,255,0.04)",
@@ -81,27 +82,33 @@ export function MusicPlayer({
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                 style={{
-                  background: isPlaying || isLoading ? `${stream.color}28` : "rgba(255,255,255,0.08)",
-                  color: isPlaying || isLoading ? stream.color : "hsl(var(--muted-foreground))",
+                  background: isPlaying || isLoading ? `${station.color}28` : "rgba(255,255,255,0.08)",
+                  color: isPlaying || isLoading ? station.color : "hsl(var(--muted-foreground))",
                 }}
               >
                 <Icon size={16} />
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground leading-none">{stream.label}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">{stream.description}</p>
+                <p className="text-sm font-semibold text-foreground leading-none">{station.label}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{station.description}</p>
+                {isActive && nowPlaying && (
+                  <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: station.color }}>
+                    <Music2 size={10} className="shrink-0" />
+                    <span className="truncate">{nowPlaying}</span>
+                  </p>
+                )}
               </div>
 
               <div className="shrink-0 flex items-center gap-2">
-                {isLoading && <Loader2 size={13} className="animate-spin" style={{ color: stream.color }} />}
+                {isLoading && <Loader2 size={13} className="animate-spin" style={{ color: station.color }} />}
                 {isPlaying && (
                   <div className="flex items-end gap-[2px] h-3.5 mr-1">
                     {[0, 1, 2, 3, 4].map((i) => (
                       <div key={i} className="w-[3px] rounded-full"
                         style={{
                           height: "100%",
-                          background: stream.color,
+                          background: station.color,
                           animation: `eq-bar ${0.5 + i * 0.1}s ease-in-out infinite alternate`,
                           animationDelay: `${i * 0.07}s`,
                         }}
@@ -112,7 +119,7 @@ export function MusicPlayer({
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center transition-all"
                   style={{
-                    background: isPlaying || isLoading ? stream.color : "rgba(255,255,255,0.1)",
+                    background: isPlaying || isLoading ? station.color : "rgba(255,255,255,0.1)",
                     color: isPlaying || isLoading ? "#fff" : "hsl(var(--muted-foreground))",
                   }}
                 >

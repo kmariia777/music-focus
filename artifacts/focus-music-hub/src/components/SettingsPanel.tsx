@@ -232,7 +232,7 @@ export function SettingsPanel({
               <section>
                 <SectionTitle>Music Credits</SectionTitle>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  All station music by{" "}
+                  Station music by{" "}
                   <a
                     href="https://incompetech.com"
                     target="_blank"
@@ -250,7 +250,7 @@ export function SettingsPanel({
                   >
                     Creative Commons Attribution 4.0
                   </a>
-                  . Tracks are re-encoded to 128kbps for streaming; shorter tracks
+                  . Additional tracks: "Falling Sky" by Jason Shaw (audionautix.com), CC BY 4.0; "Simple Hop", "Night Owl", and "Day Bird" by Broke For Free (archive.org), CC BY 3.0. Tracks are re-encoded to 128kbps for streaming; shorter tracks
                   are seamlessly looped into extended mixes for focus-length sessions.
                 </p>
                 <details className="mt-2 text-xs text-muted-foreground">
@@ -263,16 +263,23 @@ export function SettingsPanel({
                     <li>EDM Detection Mode — Focus</li>
                     <li>Digital Lemonade — Focus</li>
                     <li>Future Cha Cha — Focus</li>
+                    <li>Ethernight Club — Focus</li>
+                    <li>Falling Sky — Focus</li>
+                    <li>Simple Hop — Focus</li>
                     <li>Crypto — Immerse</li>
                     <li>Deep Haze — Immerse</li>
                     <li>Echoes of Time — Immerse</li>
                     <li>Mirage — Immerse</li>
                     <li>Sovereign — Immerse</li>
+                    <li>Klockworx — Immerse</li>
                     <li>Tranquility Base — Drift</li>
                     <li>Chill Wave — Drift</li>
                     <li>Fluidscape — Drift</li>
                     <li>Lightless Dawn — Drift</li>
                     <li>Silver Blue Light — Drift</li>
+                    <li>Airship Serenity — Drift</li>
+                    <li>Night Owl — Drift</li>
+                    <li>Day Bird — Drift</li>
                   </ul>
                 </details>
               </section>

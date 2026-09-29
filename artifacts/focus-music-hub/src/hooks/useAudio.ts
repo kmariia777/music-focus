@@ -33,6 +33,9 @@ export const STATIONS: readonly Station[] = [
       track("EDM Detection Mode", "focus/EDM Detection Mode.mp3"),
       track("Digital Lemonade", "focus/Digital Lemonade.mp3"),
       track("Future Cha Cha", "focus/Future Cha Cha.mp3"),
+      track("Ethernight Club", "focus/Ethernight Club.mp3"),
+      track("Falling Sky", "focus/Falling Sky.mp3"),
+      track("Simple Hop", "focus/Simple Hop.mp3"),
     ],
   },
   {
@@ -46,6 +49,7 @@ export const STATIONS: readonly Station[] = [
       track("Echoes of Time", "immerse/Echoes of Time.mp3"),
       track("Mirage", "immerse/Mirage.mp3"),
       track("Sovereign", "immerse/Sovereign.mp3"),
+      track("Klockworx", "immerse/Klockworx.mp3"),
     ],
   },
   {
@@ -59,6 +63,9 @@ export const STATIONS: readonly Station[] = [
       track("Fluidscape", "drift/Fluidscape.mp3"),
       track("Lightless Dawn", "drift/Lightless Dawn.mp3"),
       track("Silver Blue Light", "drift/Silver Blue Light.mp3"),
+      track("Airship Serenity", "drift/Airship Serenity.mp3"),
+      track("Night Owl", "drift/Night Owl.mp3"),
+      track("Day Bird", "drift/Day Bird.mp3"),
     ],
   },
 ];

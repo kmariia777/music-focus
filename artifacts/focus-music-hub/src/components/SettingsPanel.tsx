@@ -253,7 +253,8 @@ export function SettingsPanel({
                   >
                     Creative Commons Attribution 4.0
                   </a>
-                  . Tracks are re-encoded to 128kbps for streaming.
+                  . Tracks are re-encoded to 128kbps for streaming; shorter tracks
+                  are seamlessly looped into extended mixes for focus-length sessions.
                 </p>
                 <details className="mt-2 text-xs text-muted-foreground">
                   <summary className="cursor-pointer hover:text-foreground select-none">

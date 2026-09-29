@@ -7,6 +7,9 @@ licensed under **Creative Commons Attribution 4.0 International (CC BY 4.0)**
 - Source: `https://incompetech.com/music/royalty-free/mp3-royaltyfree/`
 - Downloaded: 2026-09-29
 - Adaptation: re-encoded from 320kbps to 128kbps MP3 for streaming (permitted under CC BY 4.0; adaptation noted here and in-app)
+- Extended mixes: tracks shorter than 5 minutes were seamlessly looped (2-second crossfades)
+  into ~7–9 minute "extended" versions so a focus session isn't chopped up by short tracks.
+  This is an adaptation permitted under CC BY 4.0; the underlying work and licensor are unchanged.
 - Files served from: `artifacts/focus-music-hub/public/audio/`
 - Attribution is shown in-app under Configure → Music Credits, in the format required by the licensor:
   `[Title] Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0`

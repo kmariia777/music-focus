@@ -5,7 +5,7 @@ export default function Terms() {
     <LegalLayout title="Terms of Service" updated="September 29, 2026">
       <LegalSection heading="The service">
         <p>
-          Focus Music Hub provides a Pomodoro timer, a personal task list, and
+          Hyper-Focus Music provides a Pomodoro timer, a personal task list, and
           curated focus-music stations. By using the app, you agree to these terms.
         </p>
       </LegalSection>
@@ -13,7 +13,7 @@ export default function Terms() {
       <LegalSection heading="License">
         <p>
           We grant you a personal, non-exclusive, non-transferable, revocable
-          license to use Focus Music Hub for your own productivity. You may not
+          license to use Hyper-Focus Music for your own productivity. You may not
           copy, resell, or redistribute the app or its music streams, attempt to
           disrupt the service, or use it for any unlawful purpose.
         </p>
@@ -64,7 +64,7 @@ export default function Terms() {
 
       <LegalSection heading="Age">
         <p>
-          You must be at least 13 years old to use Focus Music Hub, or use it with
+          You must be at least 13 years old to use Hyper-Focus Music, or use it with
           a parent or guardian.
         </p>
       </LegalSection>

@@ -17,7 +17,7 @@ export function LegalLayout({ title, updated, children }: {
           className="inline-flex items-center gap-2 text-sm mb-8 hover:opacity-80 transition-opacity"
           style={{ color: "hsl(var(--muted-foreground))" }}
         >
-          <ArrowLeft size={15} /> Back to Focus Music Hub
+          <ArrowLeft size={15} /> Back to Hyper-Focus Music
         </Link>
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         <p className="text-xs mt-2 mb-8" style={{ color: "hsl(var(--muted-foreground))" }}>

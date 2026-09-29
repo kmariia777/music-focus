@@ -113,7 +113,7 @@ export function TaskManager({ tasks, onTasksChange }: TaskManagerProps) {
     const fmt = (t: Task) => `${t.status === "in-progress" ? "▶ " : "• "}${t.text}${PRIORITY_LABEL[t.priority ?? "none"]}`;
 
     const lines = [
-      `Focus Music Hub — Task List`,
+      `Hyper-Focus Music — Task List`,
       `${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}`,
       "",
       ...(activeTasks.length > 0 ? ["TO DO", ...activeTasks.map(fmt), ""] : []),

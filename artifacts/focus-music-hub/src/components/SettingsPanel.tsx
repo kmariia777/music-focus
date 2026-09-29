@@ -396,7 +396,7 @@ function FeedbackForm() {
   const send = () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    const subject = encodeURIComponent("Focus Music Hub Feedback");
+    const subject = encodeURIComponent("Hyper-Focus Music Feedback");
     const body = encodeURIComponent(trimmed);
     window.location.href = `mailto:${FEEDBACK_EMAIL}?subject=${subject}&body=${body}`;
     setSent(true);

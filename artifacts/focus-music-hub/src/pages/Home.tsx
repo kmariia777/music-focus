@@ -93,7 +93,11 @@ export default function Home() {
               style={{ background: "linear-gradient(135deg, #6d28d9, #8b5cf6)" }}>
               <Brain size={14} className="text-white" />
             </div>
-            <span className="font-semibold text-foreground text-sm tracking-tight">Focus Music Hub</span>
+            <span className="font-semibold text-foreground text-sm tracking-tight">Hyper-Focus Music</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md text-white/90"
+              style={{ background: "linear-gradient(135deg, #6d28d9, #8b5cf6)" }}>
+              Hyper FM
+            </span>
           </div>
 
           <button

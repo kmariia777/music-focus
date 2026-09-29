@@ -5,7 +5,7 @@ export default function Privacy() {
     <LegalLayout title="Privacy Policy" updated="September 29, 2026">
       <LegalSection heading="Overview">
         <p>
-          Focus Music Hub is a Pomodoro timer, task list, and focus-music app.
+          Hyper-Focus Music is a Pomodoro timer, task list, and focus-music app.
           It is designed to work without collecting your personal data: there are
           no accounts, no sign-ups, and no analytics.
         </p>
@@ -25,7 +25,7 @@ export default function Privacy() {
       <LegalSection heading="Data we collect">
         <p>
           <strong style={{ color: "hsl(var(--foreground))" }}>We do not collect personal data.</strong>{" "}
-          Focus Music Hub does not ask for your name, email address, or any other
+          Hyper-Focus Music does not ask for your name, email address, or any other
           identifier. There is no account system, and we run no analytics,
           advertising trackers, or crash reporters.
         </p>
@@ -61,7 +61,7 @@ export default function Privacy() {
 
       <LegalSection heading="Children's privacy">
         <p>
-          Focus Music Hub is not directed at children under 13, and we do not
+          Hyper-Focus Music is not directed at children under 13, and we do not
           knowingly collect information from children. If you are under 13, please
           use the app only with a parent or guardian.
         </p>
